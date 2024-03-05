@@ -1,0 +1,252 @@
+#include "pch.h"
+#include "CScene_Stage.h"
+#include "CObject.h"
+#include "CTile.h"
+#include "CTexture.h"
+#include "CResMgr.h"
+#include "CCore.h"
+#include "CCamera.h"
+#include "CEventMgr.h"
+#include "CLayer.h"
+#include "CTileLayer.h"
+#include "CThreadMgr.h"
+
+extern bool g_bDoMultiThread;
+
+CScene_Stage::CScene_Stage()
+{
+	
+	for (int i = 0; i < THREAD::END + 1; ++i)
+	{
+		CreateDCBITMAP(m_hSceneThreadDC[i], m_hSceneThreadBit[i], Mgr(CCore)->GetResolutionV());
+		SetBkMode(m_hSceneThreadDC[i], TRANSPARENT);
+	}
+	m_vRes = Mgr(CCore)->GetResolutionV();
+}
+
+CScene_Stage::~CScene_Stage()
+{
+	for (int i = 0; i < THREAD::END + 1; ++i)
+	{
+		DeleteDCBITMAP(m_hSceneThreadDC[i], m_hSceneThreadBit[i]);
+	}
+	Reset();
+}
+
+void CScene_Stage::Enter()
+{
+	if (g_bDoMultiThread)
+	{
+		Mgr(CThreadMgr)->Join_all();
+	}
+}
+
+void CScene_Stage::Exit()
+{
+	if (g_bDoMultiThread)
+	{
+		Mgr(CThreadMgr)->Join_all();
+	}
+	Reset();
+}
+
+void CScene_Stage::AddTileLayer(CTileLayer* const _pTileLayer)
+{
+	m_vecTileLayer.emplace_back(_pTileLayer);
+}
+
+void CScene_Stage::render(HDC _dc)
+{
+	const Vec2 vRes = Mgr(CCore)->GetResolutionV();
+	
+	if (g_bDoMultiThread)
+	{
+		Mgr(CThreadMgr)->Join_all();
+
+		std::atomic_thread_fence(std::memory_order_seq_cst);
+
+		static const int size = (int)m_vecLayer.size();
+
+		Mgr(CThreadMgr)->Enqueue(THREAD::T0, [this]() {for (int i = 0; i < 3; ++i)
+		{
+			m_vecLayer[i]->render(m_hSceneThreadDC[THREAD::T0]);
+		}});
+
+		Mgr(CThreadMgr)->Enqueue(THREAD::T1, [this]() {for (int i = 3; i < size; ++i)
+		{
+			m_vecLayer[i]->render(m_hSceneThreadDC[THREAD::T1]);
+		}});
+
+		Mgr(CThreadMgr)->Enqueue(THREAD::T2, [this]() {for (const auto& tileVec : m_vecTileLayer)
+		{
+			tileVec->render(m_hSceneThreadDC[THREAD::T2]);
+		}});
+
+		for (auto& vecObj : m_vecObj)
+		{
+			const auto vecPtr = vecObj.data();
+			for (size_t i = 0; i < vecObj.size();)
+			{
+				if (vecPtr[i]->IsDead())
+				{
+					Mgr(CEventMgr)->AddDeadObj(vecPtr[i]);
+					vecPtr[i] = std::move(vecObj.back());
+					vecObj.pop_back();
+				}
+				else
+				{
+					vecPtr[i]->render(m_hSceneThreadDC[THREAD::END]);
+					++i;
+				}
+			}
+		};
+
+		Mgr(CThreadMgr)->Join(THREAD::T2);
+
+		//std::atomic_thread_fence(std::memory_order_seq_cst);
+
+		Mgr(CThreadMgr)->Enqueue(THREAD::T2, TransparentBlt, m_hSceneThreadDC[THREAD::T2]
+			, 0
+			, 0
+			, (int)vRes.x
+			, (int)vRes.y
+			, m_hSceneThreadDC[THREAD::END]
+			, 0
+			, 0
+			, (int)vRes.x
+			, (int)vRes.y
+			, RGB(255, 0, 255));
+
+		Mgr(CThreadMgr)->Join(THREAD::T0);
+		Mgr(CThreadMgr)->Join(THREAD::T1);
+
+		//std::atomic_thread_fence(std::memory_order_seq_cst);
+
+		TransparentBlt(m_hSceneThreadDC[THREAD::T0]
+			, 0
+			, 0
+			, (int)vRes.x
+			, (int)vRes.y
+			, m_hSceneThreadDC[THREAD::T1]
+			, 0
+			, 0
+			, (int)vRes.x
+			, (int)vRes.y
+			, RGB(255, 0, 255));
+
+		Mgr(CThreadMgr)->Join(THREAD::T2);
+
+		//std::atomic_thread_fence(std::memory_order_seq_cst);
+
+		TransparentBlt(m_hSceneThreadDC[THREAD::T0]
+			, 0
+			, 0
+			, (int)vRes.x
+			, (int)vRes.y
+			, m_hSceneThreadDC[THREAD::T2]
+			, 0
+			, 0
+			, (int)vRes.x
+			, (int)vRes.y
+			, RGB(255, 0, 255));
+
+		//std::atomic_thread_fence(std::memory_order_seq_cst);
+
+		Mgr(CCamera)->SetNowLookAt(vRes / 2);
+
+		Mgr(CCamera)->TransformRenderPos();
+
+		BitBlt(_dc
+			, 0
+			, 0
+			, (int)vRes.x
+			, (int)vRes.y
+			, m_hSceneThreadDC[THREAD::T0]
+			, 0
+			, 0
+			, SRCCOPY);
+
+		//std::atomic_thread_fence(std::memory_order_seq_cst);
+
+		Mgr(CThreadMgr)->Enqueue(THREAD::T0, &CCore::MaznetaClear, Mgr(CCore), m_hSceneThreadDC[THREAD::T1], THREAD::T0);
+		Mgr(CThreadMgr)->Enqueue(THREAD::T1, &CCore::MaznetaClear, Mgr(CCore), m_hSceneThreadDC[THREAD::T2], THREAD::T1);
+		Mgr(CThreadMgr)->Enqueue(THREAD::T2, &CCore::MaznetaClear, Mgr(CCore), m_hSceneThreadDC[THREAD::END], THREAD::T2);
+
+		Mgr(CCamera)->ResetRenderPos();
+		Mgr(CCamera)->SetCamRect(GetPlayer()->GetPos());
+	}
+	else
+	{
+	
+		for (auto& layer : m_vecLayer)
+		{
+			layer->render(m_hSceneThreadDC[1]);
+		}
+
+		for (auto& tilelayer : m_vecTileLayer)
+		{
+			tilelayer->render(m_hSceneThreadDC[1]);
+		}
+
+		for (auto& vecObj : m_vecObj)
+		{
+			const auto vecPtr = vecObj.data();
+			for (size_t i = 0; i < vecObj.size();)
+			{
+				if (vecPtr[i]->IsDead())
+				{
+					Mgr(CEventMgr)->AddDeadObj(vecPtr[i]);
+					vecPtr[i] = std::move(vecObj.back());
+					vecObj.pop_back();
+				}
+				else
+				{
+					vecPtr[i]->render(m_hSceneThreadDC[1]);
+					++i;
+				}
+			}
+		};
+
+	
+		TransparentBlt(m_hSceneThreadDC[0]
+			, 0
+			, 0
+			, (int)vRes.x
+			, (int)vRes.y
+			, m_hSceneThreadDC[1]
+			, 0
+			, 0
+			, (int)vRes.x
+			, (int)vRes.y
+			, RGB(255, 0, 255));
+
+		Mgr(CCamera)->SetNowLookAt(vRes / 2.f );
+
+		Mgr(CCamera)->TransformRenderPos();
+		
+
+		BitBlt(_dc
+			, 0
+			, 0
+			, (int)vRes.x
+			, (int)vRes.y
+			, m_hSceneThreadDC[0]
+			, 0
+			, 0
+			, SRCCOPY);
+		
+		Mgr(CCamera)->ResetRenderPos();
+		Mgr(CCamera)->SetCamRect(GetPlayer()->GetPos());
+
+	}
+}
+
+void CScene_Stage::Reset()
+{
+	Mgr(CCamera)->Reset();
+	CScene::Reset();
+	m_vecLayer.clear();
+	m_vecTileLayer.clear();
+	m_pPlayer = nullptr;
+}
+
