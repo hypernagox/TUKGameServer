@@ -27,8 +27,8 @@ void CPathMgr::init()
 	auto strIdx = strCurEXEpath.find('\0');
 	strCurEXEpath.erase(strIdx);
 	//strCurEXEpath[strIdx] = '\0';
-	m_wstrResPath = std::filesystem::path{ wstrCurEXEPath }.parent_path().wstring() + L"\\TermProjectGameFrameWork\\Output\\Resource\\";
-	m_strResPath = std::filesystem::path{ strCurEXEpath }.parent_path().string() + "\\TermProjectGameFrameWork\\Output\\Resource\\";
+	m_wstrResPath = std::filesystem::path{ wstrCurEXEPath }.parent_path().wstring() + L"\\Resource\\";
+	m_strResPath = std::filesystem::path{ strCurEXEpath }.parent_path().string() + "\\Resource\\";
 	m_wstrTexPath = m_wstrResPath + L"Texture";
 	m_strSoundPath = m_strResPath + "Sound";
 }
