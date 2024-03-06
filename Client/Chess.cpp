@@ -1,7 +1,8 @@
+#include "pch.h"
 #include "Chess.h"
 #include "Horse.h"
 #include "CResMgr.h"
-#include "pch.h"
+
 
 void Chess::Enter()
 {

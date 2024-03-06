@@ -1,16 +1,17 @@
 #pragma once
 
-#define bit_abs_nonZ(x)  ((((x>>31) ^ x) - (x>>31))|1)
-#define fDT CTimeMgr::GetInst()->GetfDT()			
-#define DT	CTimeMgr::GetInst()->GetDT()			
+#define bit_abs_nonZ(x)  ((((x>>31) ^ x) - (x>>31))|1)	
+#define DT	(CTimeMgr::GetInst()->GetDT())			
 
 #define CLONE(type)  type* Clone()const override{return new type{*this};} 
 
-#define KEY_CHECK(key,state)	CKeyMgr::GetInst()->GetKeyState(key)==state
-#define KEY_HOLD(key)			KEY_CHECK(key,KEY_STATE::HOLD)		
-#define KEY_TAP(key)			KEY_CHECK(key,KEY_STATE::TAP)
-#define KEY_AWAY(key)			KEY_CHECK(key,KEY_STATE::AWAY)
-#define KEY_NONE(key)			KEY_CHECK(key,KEY_STATE::NONE)
+#define Mgr(type)	(type::GetInst())
+
+#define KEY_CHECK(key,state)	((Mgr(CKeyMgr)->GetKeyState(key))==state)
+#define KEY_HOLD(key)			(KEY_CHECK(key,KEY_STATE::HOLD))		
+#define KEY_TAP(key)			(KEY_CHECK(key,KEY_STATE::TAP))
+#define KEY_AWAY(key)			(KEY_CHECK(key,KEY_STATE::AWAY))
+#define KEY_NONE(key)			(KEY_CHECK(key,KEY_STATE::NONE))
 
 #define MOUSE_POS (CCamera::GetInst()->GetRealPos(CKeyMgr::GetInst()->GetMousePos()))
 
@@ -102,8 +103,6 @@ enum class COMPONENT_TYPE
 
 	END,
 };
-	
-#define Mgr(type)	(type::GetInst())
 
 enum class SOUND_TYPE
 {

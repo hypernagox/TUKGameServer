@@ -22,16 +22,16 @@ void CScene_Tool::update()
 	curLookPosData += L"¸¶¿ì½º: (" + std::to_wstring(vCurMousePos.x) + L" , " + std::to_wstring(vCurMousePos.y) + L")";
 	SetWindowText(CCore::GetInst()->GetMainHwnd(), curLookPosData.data());
 
-	if (KEY_TAP(KEY::RSHIFT)) {
+	if (KEY_TAP(VK_RSHIFT)) {
 		Mgr(CCamera)->SetLookAt(Mgr(CCore)->GetResolutionV() / 2.);
 	}
 
-	if (KEY_TAP(KEY::LBTN)) {
+	if (KEY_TAP(VK_LBUTTON)) {
 		m_vMouseDownPos = MOUSE_POS;
 		m_bMouseDown = true;
 		m_bTileDone = false;
 	}
-	if (KEY_AWAY(KEY::LBTN)) {
+	if (KEY_AWAY(VK_LBUTTON)) {
 		m_vMouseUpPos = MOUSE_POS;
 		m_bMouseDown = false;
 		//m_bTileDone = true;

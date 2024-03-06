@@ -1,10 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="소스 파일">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
     <Filter Include="헤더 파일">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
@@ -124,16 +120,16 @@
     <Filter Include="Engine\02. Manager\DebugMgr">
       <UniqueIdentifier>{e723a424-1c02-493a-89d7-7ce4cc6b3553}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Engine\Scene">
-      <UniqueIdentifier>{90c0b8ed-0f84-451e-8745-6a154b9749b5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Engine\Scene\Scene_Tool">
-      <UniqueIdentifier>{2f591532-e24f-493d-8500-c043a110583e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Engine\02. Manager\SoundMgr">
       <UniqueIdentifier>{995dd5d0-32ec-4f2e-a75a-13846c4dc706}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Engine\Scene\CScene_Stage">
+    <Filter Include="Engine\04. Scene\Scene">
+      <UniqueIdentifier>{90c0b8ed-0f84-451e-8745-6a154b9749b5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\04. Scene\Scene\Scene_Tool">
+      <UniqueIdentifier>{2f591532-e24f-493d-8500-c043a110583e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\04. Scene\Scene\CScene_Stage">
       <UniqueIdentifier>{13079fb5-2138-40e1-85b3-7d846c8a4ddf}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -223,7 +219,7 @@
       <Filter>Engine\02. Manager\EventMgr</Filter>
     </ClInclude>
     <ClInclude Include="CScene_Tool.h">
-      <Filter>Engine\Scene\Scene_Tool</Filter>
+      <Filter>Engine\04. Scene\Scene\Scene_Tool</Filter>
     </ClInclude>
     <ClInclude Include="CAtlasMgr.h">
       <Filter>Engine\02. Manager\AtlasMgr</Filter>
@@ -256,10 +252,10 @@
       <Filter>Engine\02. Manager\SoundMgr</Filter>
     </ClInclude>
     <ClInclude Include="CScene_Stage.h">
-      <Filter>Engine\Scene\CScene_Stage</Filter>
+      <Filter>Engine\04. Scene\Scene\CScene_Stage</Filter>
     </ClInclude>
     <ClInclude Include="CScene.h">
-      <Filter>Engine\Scene</Filter>
+      <Filter>Engine\04. Scene\Scene</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -327,7 +323,7 @@
       <Filter>Engine\02. Manager\EventMgr</Filter>
     </ClCompile>
     <ClCompile Include="CScene_Tool.cpp">
-      <Filter>Engine\Scene\Scene_Tool</Filter>
+      <Filter>Engine\04. Scene\Scene\Scene_Tool</Filter>
     </ClCompile>
     <ClCompile Include="CAtlasMgr.cpp">
       <Filter>Engine\02. Manager\AtlasMgr</Filter>
@@ -360,10 +356,10 @@
       <Filter>Engine\02. Manager\SoundMgr</Filter>
     </ClCompile>
     <ClCompile Include="CScene_Stage.cpp">
-      <Filter>Engine\Scene\CScene_Stage</Filter>
+      <Filter>Engine\04. Scene\Scene\CScene_Stage</Filter>
     </ClCompile>
     <ClCompile Include="CScene.cpp">
-      <Filter>Engine\Scene</Filter>
+      <Filter>Engine\04. Scene\Scene</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

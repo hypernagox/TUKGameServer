@@ -5,38 +5,6 @@
 
 extern HHOOK hHook;
 
-int g_arrVK[(int)KEY::LAST]		
-{
-	VK_LEFT,	
-	VK_RIGHT,			
-	VK_UP,		
-	VK_DOWN,		
-	'W',		
-	'A'	,
-	'S'	,		
-	'D'	,		
-	VK_SPACE,			
-	VK_RETURN ,		
-	VK_TAB,		
-	VK_LBUTTON,
-	VK_RBUTTON ,
-	VK_LSHIFT ,
-	VK_CONTROL ,
-	VK_RSHIFT ,
-	'1',
-	'2',
-	'3',
-	'4',
-	'5',
-	'6',
-	'7',
-	'8',
-	'9',
-	'0',
-	'M',
-	VK_ESCAPE
-};
-
 CKeyMgr::CKeyMgr()
 {
 
@@ -49,63 +17,60 @@ CKeyMgr::~CKeyMgr()
 
 void CKeyMgr::init()
 {
-	for (int i = 0; i < (int)KEY::LAST; ++i)
-	{
-		m_vecKey.emplace_back(tKeyInfo{ KEY_STATE::NONE,false });
-	}
+	m_mapKey.reserve(128);
 }
 
 void CKeyMgr::update()
 {
-	HWND hWnd{ GetFocus() };	
+	const HWND hWnd{ GetFocus() };	
 
 	if (hWnd)		
 	{
-		for (int i = 0; i < (int)KEY::LAST; ++i)
+		for (auto& [VKval, keyInfo] : m_mapKey)
 		{
-			if (GetAsyncKeyState(g_arrVK[i]) & 0x8000)
+			if (GetAsyncKeyState(VKval) & 0x8000)
 			{
-				if (m_vecKey[i].bPrevPush)	
+				if (keyInfo.bPrevPush)
 				{
-					m_vecKey[i].eState = KEY_STATE::HOLD;
+					keyInfo.eState = KEY_STATE::HOLD;
 				}
 				else
 				{
-					m_vecKey[i].eState = KEY_STATE::TAP;
+					keyInfo.eState = KEY_STATE::TAP;
 				}
-				m_vecKey[i].bPrevPush = true; 
+				keyInfo.bPrevPush = true;
 			}
 			else
 			{
-				if (m_vecKey[i].bPrevPush)
+				if (keyInfo.bPrevPush)
 				{
-					m_vecKey[i].eState = KEY_STATE::AWAY;
+					keyInfo.eState = KEY_STATE::AWAY;
 				}
 				else
 				{
-					m_vecKey[i].eState = KEY_STATE::NONE;
+					keyInfo.eState = KEY_STATE::NONE;
 				}
-
-				m_vecKey[i].bPrevPush = false;
+				keyInfo.bPrevPush = false;
 			}
 		}
+		
 		GetCursorPos(&m_ptCurMousePos);	
 		ScreenToClient(CCore::GetInst()->GetMainHwnd(), &m_ptCurMousePos);
 		m_vCurMousePos = m_ptCurMousePos;
 	}
 	else
 	{
-		for (auto& key : m_vecKey)
+		for (auto& [VKval, keyInfo] : m_mapKey)
 		{
-			key.bPrevPush = false;
+			keyInfo.bPrevPush = false;
 
-			if (KEY_STATE::TAP == key.eState || KEY_STATE::HOLD == key.eState)
+			if (KEY_STATE::TAP == keyInfo.eState || KEY_STATE::HOLD == keyInfo.eState)
 			{
-				key.eState = KEY_STATE::AWAY;
+				keyInfo.eState = KEY_STATE::AWAY;
 			}
-			else if (KEY_STATE::AWAY == key.eState)
+			else if (KEY_STATE::AWAY == keyInfo.eState)
 			{
-				key.eState = KEY_STATE::NONE;
+				keyInfo.eState = KEY_STATE::NONE;
 			}
 		}
 	}
