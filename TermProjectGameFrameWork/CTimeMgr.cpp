@@ -2,6 +2,7 @@
 #include "CTimeMgr.h"
 #include "CCore.h"
 #include "CCamera.h"
+#include "CKeyMgr.h"
 
 CTimeMgr::CTimeMgr()
 {
@@ -24,7 +25,8 @@ void CTimeMgr::update()
 	m_PrevTime = CurTime;
 	m_fAccTime += m_DeltaTime.count();
 	
-	const wstring wstr = L"Client  FPS: " + std::to_wstring(m_fCheckDT);
+	const auto mPos = Mgr(CKeyMgr)->GetMousePos();
+	const wstring wstr = L"Client  FPS: " + std::to_wstring(m_fCheckDT) + L" MOUSE_POS: " + std::to_wstring(mPos.x) + L", " + std::to_wstring(mPos.y);
 	SetWindowText(Mgr(CCore)->GetMainHwnd(), wstr.data());
 	if (m_fAccTime >= 1.f)
 	{

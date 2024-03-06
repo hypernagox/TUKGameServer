@@ -2,6 +2,8 @@
 #include "pch.h"
 #include "CObject.h"
 
+class Chess;
+
 class Horse
 	:public CObject
 {
@@ -16,9 +18,13 @@ public:
 		auto p = new Horse{ *this };
 		return p;
 	}
-	virtual void update()override;
-	virtual void component_update()override;
 	void render(HDC _dc)const override;
+	void SetBoard(Chess* pBoard_) { m_pCurBoard = pBoard_; }
+	Chess* GetBoard()const { return m_pCurBoard; }
+protected:
+	int m_xPos = 0;
+	int m_yPos = 0;
+	Chess* m_pCurBoard;
 private:
 	const CImage* m_pImg;
 };

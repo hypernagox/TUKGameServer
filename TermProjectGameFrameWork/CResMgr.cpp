@@ -121,7 +121,7 @@ void CResMgr::renderImg(HDC _dc, const CImage* const _pImg, Vec2 _vLT, Vec2 _vSc
 
 }
 
-void CResMgr::renderImg(HDC _dc,const CImage* const _pImg, const CObject* const _pObj, Vec2 _vBitPos, Vec2 _vSlice, bool _bIsFlip)const
+void CResMgr::renderImg(HDC _dc,const CImage* const _pImg, const CObject* const _pObj, Vec2 _vBitPos, Vec2 _vSlice, bool _bIsFlip, UINT maskColor_)const
 {
 	static Vec2 vLtPos;
 	static Vec2 vScale;
@@ -164,7 +164,7 @@ void CResMgr::renderImg(HDC _dc,const CImage* const _pImg, const CObject* const 
 		, (int)vLtPos.y
 		, (int)vScale.x
 		, (int)vScale.y
-		, RGB(255, 0, 255));
+		, maskColor_);
 
 	/*BitBlt(m_hBackDC
 		, (int)vLtPos.x

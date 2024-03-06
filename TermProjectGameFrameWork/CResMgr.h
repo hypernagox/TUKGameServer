@@ -31,7 +31,7 @@ public:
 		return iter->second.get();
 	}
 	CImage* CreateImg(wstring_view _strKey, UINT _iWidth, UINT _iHeight);
-	void renderImg(HDC _dc ,const CImage* const _pImg, const CObject* const _pObj, Vec2 _vBitPos, Vec2 _vSlice,bool _bIsFlip=false)const;
+	void renderImg(HDC _dc, const CImage* const _pImg, const CObject* const _pObj, Vec2 _vBitPos, Vec2 _vSlice, bool _bIsFlip = false, UINT maskColor_ = RGB(255, 0, 255))const;
 	void renderImg(HDC _dc, const CImage* const _pImg, Vec2 _vLT, Vec2 _vScale, Vec2 _vBitPos, Vec2 _vSliceSize)const;
 	HDC GetResMgrBackDC()const { return m_hBackDC; }
 	void renderDC(HDC _dest,HDC _src, const CObject* const _pObj, Vec2 _vBitPos, Vec2 _vSlice)const;

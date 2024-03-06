@@ -13,11 +13,14 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="소스 파일\Chess">
+      <UniqueIdentifier>{17fe5b2a-041e-46bb-b8da-b7e113d5564e}</UniqueIdentifier>
+    </Filter>
     <Filter Include="소스 파일\Horse">
       <UniqueIdentifier>{92144616-1b86-4c4c-bca8-3b089899db22}</UniqueIdentifier>
     </Filter>
-    <Filter Include="소스 파일\Chess">
-      <UniqueIdentifier>{17fe5b2a-041e-46bb-b8da-b7e113d5564e}</UniqueIdentifier>
+    <Filter Include="소스 파일\Horse\MyHorse">
+      <UniqueIdentifier>{2f28123e-4d43-4b35-8182-a3a5553894f1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -42,6 +45,9 @@
     <ClInclude Include="pch.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="MyHorse.h">
+      <Filter>소스 파일\Horse\MyHorse</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Client.cpp">
@@ -55,6 +61,9 @@
     </ClCompile>
     <ClCompile Include="pch.cpp">
       <Filter>헤더 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="MyHorse.cpp">
+      <Filter>소스 파일\Horse\MyHorse</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

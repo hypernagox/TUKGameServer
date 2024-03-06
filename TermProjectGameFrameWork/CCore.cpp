@@ -198,7 +198,7 @@ void CCore::progress()
 	Mgr(CCamera)->render(m_hMemDC);
 	BitBlt(m_hDC, 0, 0, m_ptResolution.x, m_ptResolution.y,		
 		m_hMemDC, 0, 0, SRCCOPY);
-	Clear();
+	//Clear();
 	//Mgr(CSoundMgr)->update();
 	Mgr(CEventMgr)->update();
 
