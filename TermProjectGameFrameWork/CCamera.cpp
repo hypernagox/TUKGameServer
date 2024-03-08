@@ -74,13 +74,12 @@ void CCamera::render(HDC _dc)
 		break;
 	}
 
-	static BLENDFUNCTION bf = {
+	const BLENDFUNCTION bf = {
 	.BlendOp = AC_SRC_OVER,
 	.BlendFlags = 0,
+	.SourceConstantAlpha = static_cast<BYTE>(iAlpha),
 	.AlphaFormat = 0,
 	};
-
-	bf.SourceConstantAlpha = iAlpha;
 
 	AlphaBlend(_dc
 		,0
@@ -125,8 +124,8 @@ void CCamera::ResetRenderPos(HDC _dc) const
 
 pair<Vec2, Vec2> CCamera::GetRenderPos(const CObject* const _pObj) const
 {
-	Vec2 vScale = _pObj->GetScale() ;
-	Vec2 vLtPos =   (m_vCurLookAt * (1.f - m_fCamZoom) + _pObj->GetPos() * m_fCamZoom) -vScale/2.f - m_vDiff;
+	const Vec2 vScale = _pObj->GetScale() ;
+	const Vec2 vLtPos =   (m_vCurLookAt * (1.f - m_fCamZoom) + _pObj->GetPos() * m_fCamZoom) -vScale/2.f - m_vDiff;
 	return std::make_pair(vLtPos, vScale);
 }
 
