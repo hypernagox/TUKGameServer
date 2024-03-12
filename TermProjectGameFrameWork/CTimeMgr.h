@@ -15,6 +15,12 @@ private:
 public:
 	void init();
 	void update();
-	float GetDT()const { return min(0.016f,m_DeltaTime.count()); }
+	float GetDT()const noexcept{
+		const auto dt = m_DeltaTime.count();
+		if (0.016f > dt) [[likely]]
+			return dt;
+		else [[unlikely]]
+			return 0.016f;
+	}
 };
 

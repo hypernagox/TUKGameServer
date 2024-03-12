@@ -29,8 +29,8 @@ void CTile::DeleteTile(HDC _dc)
 	Vec2 vScale = GetScale();
 	Vec2 vLt = vPos - vScale / 2;
 	Vec2 vRb = vPos + vScale / 2;
-	vLt.x = max(vLt.x, 0);
-	vLt.y = max(vLt.y, 0);
+	vLt.x = max(vLt.x, 0.f);
+	vLt.y = max(vLt.y, 0.f);
 	PatBlt(_dc
 		, (int)vLt.x
 		, (int)vLt.y

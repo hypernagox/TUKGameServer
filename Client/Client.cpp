@@ -8,6 +8,7 @@
 #include "CSceneMgr.h"
 #include "Chess.h"
 
+
 HHOOK hHook;
 #define MAX_LOADSTRING 100
 
