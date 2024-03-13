@@ -5,14 +5,74 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="리소스 파일">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    <Filter Include="ClientSession">
+      <UniqueIdentifier>{6f87e426-fb9b-4118-a55d-8963e9aab30c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Protocols">
+      <UniqueIdentifier>{70598c59-5029-4fbc-8e9f-41055915a364}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Protocols\Proto">
+      <UniqueIdentifier>{89d2e598-50f5-480d-be75-bdc5c5f2402f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Protocols\ProtoFiles">
+      <UniqueIdentifier>{188c3c15-6484-433b-bd0d-c50b59db74a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils">
+      <UniqueIdentifier>{41604b0e-0633-4884-909d-c7a301926213}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Server.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="ClientSession.cpp">
+      <Filter>ClientSession</Filter>
+    </ClCompile>
+    <ClCompile Include="inc\Protocols\Enum.pb.cc">
+      <Filter>Protocols\ProtoFiles</Filter>
+    </ClCompile>
+    <ClCompile Include="inc\Protocols\Protocol.pb.cc">
+      <Filter>Protocols\ProtoFiles</Filter>
+    </ClCompile>
+    <ClCompile Include="inc\Protocols\Struct.pb.cc">
+      <Filter>Protocols\ProtoFiles</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="inc\Protocols\c2s_PacketHandler.cpp">
+      <Filter>Protocols</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ClientSession.h">
+      <Filter>ClientSession</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Protocols\Enum.pb.h">
+      <Filter>Protocols\ProtoFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Protocols\Protocol.pb.h">
+      <Filter>Protocols\ProtoFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Protocols\Struct.pb.h">
+      <Filter>Protocols\ProtoFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Protocols\c2s_PacketHandler.h">
+      <Filter>Protocols</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ServerCore\GenPackets\Enum.proto">
+      <Filter>Protocols\Proto</Filter>
+    </None>
+    <None Include="ServerCore\GenPackets\Protocol.proto">
+      <Filter>Protocols\Proto</Filter>
+    </None>
+    <None Include="ServerCore\GenPackets\Struct.proto">
+      <Filter>Protocols\Proto</Filter>
+    </None>
   </ItemGroup>
 </Project>
