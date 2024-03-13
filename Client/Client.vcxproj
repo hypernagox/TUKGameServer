@@ -71,10 +71,12 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>..\\TermProjectGameFrameWork\\;..\\TermProjectGameFrameWork\\inc\\;$(SolutionDir)ClientNetwork\\;$(IncludePath)</IncludePath>
+    <IncludePath>..\\TermProjectGameFrameWork\\;..\\TermProjectGameFrameWork\\inc\\;$(SolutionDir)ClientNetwork\\;$(SolutionDir)ClientNetwork\\libs\\;$(SolutionDir)ClientNetwork\\inc\\Protocols\\;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)ClientNetwork\\libs\\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>..\\TermProjectGameFrameWork\\;..\\TermProjectGameFrameWork\\inc\\;$(SolutionDir)ClientNetwork\\;$(IncludePath)</IncludePath>
+    <IncludePath>..\\TermProjectGameFrameWork\\;..\\TermProjectGameFrameWork\\inc\\;$(SolutionDir)ClientNetwork\\;$(SolutionDir)ClientNetwork\\libs\\;$(SolutionDir)ClientNetwork\\inc\\Protocols\\;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)ClientNetwork\\libs\\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
