@@ -22,6 +22,15 @@
     <Filter Include="소스 파일\Horse\MyHorse">
       <UniqueIdentifier>{2f28123e-4d43-4b35-8182-a3a5553894f1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Protocol">
+      <UniqueIdentifier>{bd838492-7d34-422d-bef4-5ca5a5cd7892}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Protocol\Proto">
+      <UniqueIdentifier>{6b7ecc40-1bd8-4484-b161-ec539a9f6a70}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Protocol\ProtoFiles">
+      <UniqueIdentifier>{dc759042-d586-4f05-aa81-7c38c38ec7c1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -48,6 +57,18 @@
     <ClInclude Include="MyHorse.h">
       <Filter>소스 파일\Horse\MyHorse</Filter>
     </ClInclude>
+    <ClInclude Include="ClientNetwork\inc\Protocols\Enum.pb.h">
+      <Filter>Protocol\ProtoFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="ClientNetwork\inc\Protocols\Protocol.pb.h">
+      <Filter>Protocol\ProtoFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="ClientNetwork\inc\Protocols\Struct.pb.h">
+      <Filter>Protocol\ProtoFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="ClientNetwork\inc\Protocols\s2c_PacketHandler.h">
+      <Filter>Protocol</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Client.cpp">
@@ -65,6 +86,15 @@
     <ClCompile Include="MyHorse.cpp">
       <Filter>소스 파일\Horse\MyHorse</Filter>
     </ClCompile>
+    <ClCompile Include="ClientNetwork\inc\Protocols\Enum.pb.cc">
+      <Filter>Protocol\ProtoFiles</Filter>
+    </ClCompile>
+    <ClCompile Include="ClientNetwork\inc\Protocols\Protocol.pb.cc">
+      <Filter>Protocol\ProtoFiles</Filter>
+    </ClCompile>
+    <ClCompile Include="ClientNetwork\inc\Protocols\Struct.pb.cc">
+      <Filter>Protocol\ProtoFiles</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Client.rc">
@@ -78,5 +108,16 @@
     <Image Include="Client.ico">
       <Filter>리소스 파일</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClientNetwork\GenPackets\Enum.proto">
+      <Filter>Protocol\Proto</Filter>
+    </None>
+    <None Include="ClientNetwork\GenPackets\Protocol.proto">
+      <Filter>Protocol\Proto</Filter>
+    </None>
+    <None Include="ClientNetwork\GenPackets\Struct.proto">
+      <Filter>Protocol\Proto</Filter>
+    </None>
   </ItemGroup>
 </Project>
