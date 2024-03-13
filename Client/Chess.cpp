@@ -2,6 +2,13 @@
 #include "Chess.h"
 #include "CResMgr.h"
 #include "MyHorse.h"
+#include "NetworkMgr.h"
+#include "ServerSession.h"
+
+static std::shared_ptr<ServerSession> GetServerSession()
+{
+	return std::static_pointer_cast<ServerSession>(NetMgr(NetworkMgr)->GetSession());
+}
 
 Chess::Chess()
 {
@@ -24,6 +31,7 @@ void Chess::Enter()
 	const auto pImg = Mgr(CResMgr)->GetImg(L"black_horse.png");
 	pImg->SetTransparentColor(RGB(255, 255, 255));
 	pHorse->SetImg(pImg);
+	GetServerSession()->SetHorse(pHorse);
 	
 
 	pHorse->SetBoard(this);

@@ -3,6 +3,8 @@
 #include "CKeyMgr.h"
 #include "CTimeMgr.h"
 #include "Chess.h"
+#include "SimplePacket.h"
+#include "NetworkMgr.h"
 
 MyHorse::MyHorse()
 {
@@ -16,22 +18,28 @@ void MyHorse::update()
 {
 	if (KEY_TAP(VK_LEFT))
 	{
-		m_xPos = wrapAround(m_xPos - 1, 0, 8);
+		NetHelper::c2s_KEY pkt;
+		pkt.VK = VK_LEFT;
+		NetMgr(NetworkMgr)->Send(pkt.MakeSendBuffer());
 	}
 	if (KEY_TAP(VK_DOWN))
 	{
-		m_yPos = wrapAround(m_yPos + 1, 0, 8);
+		NetHelper::c2s_KEY pkt;
+		pkt.VK = VK_DOWN;
+		NetMgr(NetworkMgr)->Send(pkt.MakeSendBuffer());
 	}
 	if (KEY_TAP(VK_RIGHT))
 	{
-		m_xPos = wrapAround(m_xPos + 1, 0, 8);
+		NetHelper::c2s_KEY pkt;
+		pkt.VK = VK_RIGHT;
+		NetMgr(NetworkMgr)->Send(pkt.MakeSendBuffer());
 	}
 	if (KEY_TAP(VK_UP))
 	{
-		m_yPos = wrapAround(m_yPos - 1, 0, 8);
+		NetHelper::c2s_KEY pkt;
+		pkt.VK = VK_UP;
+		NetMgr(NetworkMgr)->Send(pkt.MakeSendBuffer());
 	}
-
-	SetPos(m_pCurBoard->GetBoardPos(m_yPos, m_xPos));
 }
 
 void MyHorse::component_update()

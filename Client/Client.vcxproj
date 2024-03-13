@@ -148,10 +148,13 @@
     <ClInclude Include="ClientNetwork\inc\Protocols\s2c_PacketHandler.h" />
     <ClInclude Include="ClientNetwork\inc\Protocols\Struct.pb.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="func.h" />
     <ClInclude Include="Horse.h" />
     <ClInclude Include="MyHorse.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="ServerSession.h" />
+    <ClInclude Include="SimplePacket.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
@@ -165,16 +168,20 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="ClientNetwork\inc\Protocols\s2c_PacketHandler.cpp" />
     <ClCompile Include="ClientNetwork\inc\Protocols\Struct.pb.cc">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="func.cpp" />
     <ClCompile Include="Horse.cpp" />
     <ClCompile Include="MyHorse.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="ServerSession.cpp" />
+    <ClCompile Include="SimplePacket.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Client.rc" />

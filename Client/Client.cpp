@@ -2,6 +2,9 @@
 //
 
 #include "pch.h"
+#include "s2c_PacketHandler.h"
+#include "ServerSession.h"
+
 #include "framework.h"
 #include "Resource.h"
 #include "CCore.h"
@@ -61,6 +64,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     MSG msg;
     //hHook = SetWindowsHookEx(WH_MOUSE_LL, LowLevelMouseProc, NULL, 0);
 
+
+    NetMgr(NetworkMgr)->Init();
+    NetHelper::s2c_PacketHandler::Init();
+    NET_NAGOX_ASSERT(NetMgr(NetworkMgr)->Connect<ServerSession>(L"127.0.0.1", 7777, NetHelper::s2c_PacketHandler::HandlePacket));
+
     Mgr(CSceneMgr)->AddScene(SCENE_TYPE::START, new Chess);
     Mgr(CSceneMgr)->init(SCENE_TYPE::START);
 
@@ -82,6 +90,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         }
         else
         {
+            NetMgr(NetworkMgr)->DoNetworkIO();
             CCore::GetInst()->progress();
         }
     }

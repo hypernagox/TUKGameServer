@@ -21,6 +21,7 @@ public:
 	void render(HDC _dc)const override;
 	void SetBoard(Chess* pBoard_) { m_pCurBoard = pBoard_; }
 	Chess* GetBoard()const { return m_pCurBoard; }
+	void SetHorsePos(const int y_, const int x_,Vec2 pos_);
 protected:
 	int m_xPos = 0;
 	int m_yPos = 0;

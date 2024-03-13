@@ -31,6 +31,21 @@
     <Filter Include="Protocol\ProtoFiles">
       <UniqueIdentifier>{dc759042-d586-4f05-aa81-7c38c38ec7c1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Protocol\SimplePacket">
+      <UniqueIdentifier>{0db199cb-7a2a-4dd5-bf59-c5aa6e02d24e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="NetContents">
+      <UniqueIdentifier>{31000b24-2058-4cc4-b398-ff8a193ca2ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="NetContents\ServerSession">
+      <UniqueIdentifier>{83482e48-395f-4ac5-922e-a42b9a3b86d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils">
+      <UniqueIdentifier>{0717c3ce-a2fc-4680-9d41-7294f6ed4874}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils\func">
+      <UniqueIdentifier>{458aad95-ceb7-416e-9946-f67ec46d5bdd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -69,6 +84,15 @@
     <ClInclude Include="ClientNetwork\inc\Protocols\s2c_PacketHandler.h">
       <Filter>Protocol</Filter>
     </ClInclude>
+    <ClInclude Include="SimplePacket.h">
+      <Filter>Protocol\SimplePacket</Filter>
+    </ClInclude>
+    <ClInclude Include="ServerSession.h">
+      <Filter>NetContents\ServerSession</Filter>
+    </ClInclude>
+    <ClInclude Include="func.h">
+      <Filter>Utils\func</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Client.cpp">
@@ -94,6 +118,18 @@
     </ClCompile>
     <ClCompile Include="ClientNetwork\inc\Protocols\Struct.pb.cc">
       <Filter>Protocol\ProtoFiles</Filter>
+    </ClCompile>
+    <ClCompile Include="SimplePacket.cpp">
+      <Filter>Protocol\SimplePacket</Filter>
+    </ClCompile>
+    <ClCompile Include="ServerSession.cpp">
+      <Filter>NetContents\ServerSession</Filter>
+    </ClCompile>
+    <ClCompile Include="ClientNetwork\inc\Protocols\s2c_PacketHandler.cpp">
+      <Filter>Protocol</Filter>
+    </ClCompile>
+    <ClCompile Include="func.cpp">
+      <Filter>Utils\func</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

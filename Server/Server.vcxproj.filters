@@ -20,6 +20,24 @@
     <Filter Include="Utils">
       <UniqueIdentifier>{41604b0e-0633-4884-909d-c7a301926213}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Protocols\SimplePacket">
+      <UniqueIdentifier>{a0ae11b6-dd9a-41bd-85de-2edcafa1c3ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Contents">
+      <UniqueIdentifier>{3a3525e4-d381-472a-8a9a-2feac8814c6e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Contents\Chess">
+      <UniqueIdentifier>{8619040b-3e39-4342-a416-6a275f0a64cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils\struct">
+      <UniqueIdentifier>{9a7c4489-3e2f-4fd0-b362-17fa3bbc074a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils\func">
+      <UniqueIdentifier>{ba405ea8-b7c5-43f3-a89a-f9e4d3d31980}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Contents\Horse">
+      <UniqueIdentifier>{286d535a-4efb-4eb1-97f6-68f79b27becc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Server.cpp">
@@ -43,6 +61,24 @@
     <ClCompile Include="inc\Protocols\c2s_PacketHandler.cpp">
       <Filter>Protocols</Filter>
     </ClCompile>
+    <ClCompile Include="SimplePacket.cpp">
+      <Filter>Protocols\SimplePacket</Filter>
+    </ClCompile>
+    <ClCompile Include="Chess.cpp">
+      <Filter>Contents\Chess</Filter>
+    </ClCompile>
+    <ClCompile Include="Vec2.cpp">
+      <Filter>Utils\struct</Filter>
+    </ClCompile>
+    <ClCompile Include="Vec2Int.cpp">
+      <Filter>Utils\struct</Filter>
+    </ClCompile>
+    <ClCompile Include="func.cpp">
+      <Filter>Utils\func</Filter>
+    </ClCompile>
+    <ClCompile Include="Horse.cpp">
+      <Filter>Contents\Horse</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ClientSession.h">
@@ -62,6 +98,27 @@
     </ClInclude>
     <ClInclude Include="inc\Protocols\c2s_PacketHandler.h">
       <Filter>Protocols</Filter>
+    </ClInclude>
+    <ClInclude Include="SimplePacket.h">
+      <Filter>Protocols\SimplePacket</Filter>
+    </ClInclude>
+    <ClInclude Include="Chess.h">
+      <Filter>Contents\Chess</Filter>
+    </ClInclude>
+    <ClInclude Include="Vec2.hpp">
+      <Filter>Utils\struct</Filter>
+    </ClInclude>
+    <ClInclude Include="Vec2Int.hpp">
+      <Filter>Utils\struct</Filter>
+    </ClInclude>
+    <ClInclude Include="func.h">
+      <Filter>Utils\func</Filter>
+    </ClInclude>
+    <ClInclude Include="Horse.h">
+      <Filter>Contents\Horse</Filter>
+    </ClInclude>
+    <ClInclude Include="SimpleMath.hpp">
+      <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

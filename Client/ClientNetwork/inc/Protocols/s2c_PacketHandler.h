@@ -23,9 +23,9 @@ namespace NetHelper
 	class SessionManageable;
 	
 	const bool Handle_Invalid(const S_ptr<PacketSession>& pSession_, BYTE* const pBuff_, c_int32 len_);
-	const bool Handle_s2c_LOGIN(const S_ptr<PacketSession>& pSession_, const Protocol::s2c_LOGIN& pkt_);
-	const bool Handle_s2c_ENTER_GAME(const S_ptr<PacketSession>& pSession_, const Protocol::s2c_ENTER_GAME& pkt_);
-	const bool Handle_s2c_CHAT(const S_ptr<PacketSession>& pSession_, const Protocol::s2c_CHAT& pkt_);
+	//const bool Handle_s2c_LOGIN(const S_ptr<PacketSession>& pSession_, const Protocol::s2c_LOGIN& pkt_);
+	//const bool Handle_s2c_ENTER_GAME(const S_ptr<PacketSession>& pSession_, const Protocol::s2c_ENTER_GAME& pkt_);
+	//const bool Handle_s2c_CHAT(const S_ptr<PacketSession>& pSession_, const Protocol::s2c_CHAT& pkt_);
 	
 	class s2c_PacketHandler
 	{
@@ -34,9 +34,9 @@ namespace NetHelper
 	public:
 		static void Init() noexcept
 		{
-			g_fpPacketHandler[net_etoi(PKT_ID::s2c_LOGIN)] = [](const S_ptr<PacketSession>& pSession_, BYTE* const pBuff_, c_int32 len_)->const bool { return HandlePacket<Protocol::s2c_LOGIN>(Handle_s2c_LOGIN, pSession_, pBuff_, len_); };
-			g_fpPacketHandler[net_etoi(PKT_ID::s2c_ENTER_GAME)] = [](const S_ptr<PacketSession>& pSession_, BYTE* const pBuff_, c_int32 len_)->const bool { return HandlePacket<Protocol::s2c_ENTER_GAME>(Handle_s2c_ENTER_GAME, pSession_, pBuff_, len_); };
-			g_fpPacketHandler[net_etoi(PKT_ID::s2c_CHAT)] = [](const S_ptr<PacketSession>& pSession_, BYTE* const pBuff_, c_int32 len_)->const bool { return HandlePacket<Protocol::s2c_CHAT>(Handle_s2c_CHAT, pSession_, pBuff_, len_); };
+			//g_fpPacketHandler[net_etoi(PKT_ID::s2c_LOGIN)] = [](const S_ptr<PacketSession>& pSession_, BYTE* const pBuff_, c_int32 len_)->const bool { return HandlePacket<Protocol::s2c_LOGIN>(Handle_s2c_LOGIN, pSession_, pBuff_, len_); };
+			//g_fpPacketHandler[net_etoi(PKT_ID::s2c_ENTER_GAME)] = [](const S_ptr<PacketSession>& pSession_, BYTE* const pBuff_, c_int32 len_)->const bool { return HandlePacket<Protocol::s2c_ENTER_GAME>(Handle_s2c_ENTER_GAME, pSession_, pBuff_, len_); };
+			//g_fpPacketHandler[net_etoi(PKT_ID::s2c_CHAT)] = [](const S_ptr<PacketSession>& pSession_, BYTE* const pBuff_, c_int32 len_)->const bool { return HandlePacket<Protocol::s2c_CHAT>(Handle_s2c_CHAT, pSession_, pBuff_, len_); };
 			for (auto& fpHandlerFunc : g_fpPacketHandler) 
 			{
 				if (nullptr == fpHandlerFunc)
