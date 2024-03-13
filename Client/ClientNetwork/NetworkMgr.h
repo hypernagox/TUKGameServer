@@ -15,8 +15,8 @@ namespace NetHelper
 		template <typename T>requires std::derived_from<T, PacketSession>
 		bool Connect(std::wstring_view ip, uint16 port, const PacketHandleFunc handler, std::function<void(void)> disconnectFp = nullptr)
 		{
-			if (m_sessionFactory)
-				NET_NAGOX_ASSERT(false);
+			//if (m_sessionFactory)
+			//	NET_NAGOX_ASSERT(false);
 			m_disconnectCallback = std::move(disconnectFp);
 			m_sessionFactory = std::make_shared<T>;
 			return Connect(ip, port, handler);

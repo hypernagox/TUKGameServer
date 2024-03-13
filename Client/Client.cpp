@@ -11,6 +11,12 @@
 #include "CSceneMgr.h"
 #include "Chess.h"
 
+#include <regex>
+
+bool isValidIPAddress(std::wstring_view ipAddress) {
+    const std::wregex ipRegex(L"^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$");
+    return std::regex_match(ipAddress.data(), ipRegex);
+}
 
 HHOOK hHook;
 #define MAX_LOADSTRING 100
@@ -65,9 +71,28 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     //hHook = SetWindowsHookEx(WH_MOUSE_LL, LowLevelMouseProc, NULL, 0);
 
 
+    AllocConsole();
+
+    FILE* fp = nullptr;
+    freopen_s(&fp,"CONOUT$", "w", stdout);
+    freopen_s(&fp,"CONIN$", "r", stdin);
+
     NetMgr(NetworkMgr)->Init();
     NetHelper::s2c_PacketHandler::Init();
-    NET_NAGOX_ASSERT(NetMgr(NetworkMgr)->Connect<ServerSession>(L"127.0.0.1", 7777, NetHelper::s2c_PacketHandler::HandlePacket));
+    std::wstring inputIP;
+    do {
+        RE_INPUT:
+        std::wcout << L"Input IP Address: ";
+        std::wcin >> inputIP;
+        if (!isValidIPAddress(inputIP))
+        {
+            std::wcout << L"Invalid Address !'\n";
+            goto RE_INPUT;
+        }
+    } while (!NetMgr(NetworkMgr)->Connect<ServerSession>(inputIP, 7777, NetHelper::s2c_PacketHandler::HandlePacket));
+
+    FreeConsole();
+   
 
     Mgr(CSceneMgr)->AddScene(SCENE_TYPE::START, new Chess);
     Mgr(CSceneMgr)->init(SCENE_TYPE::START);

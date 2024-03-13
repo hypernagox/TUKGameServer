@@ -65,7 +65,7 @@ namespace NetHelper
     bool NetworkMgr::Connect(std::wstring_view ip, uint16 port, const PacketHandleFunc handler) noexcept
     {
         m_serverAddr = NetAddress{ ip.data(),port };
-        const auto limitTick = ::GetTickCount64() + 100000;
+        const auto limitTick = ::GetTickCount64() + 1000;
         bool bConnectSuccess = false;
         while (::GetTickCount64() < limitTick)
         {
@@ -83,7 +83,8 @@ namespace NetHelper
             WSAEventSelect(m_c2sSession->GetSocket(), m_connectEvent, FD_CONNECT);
             WSANETWORKEVENTS networkEvents;
 
-            const DWORD dwResult = WSAWaitForMultipleEvents(1, &m_connectEvent, FALSE, 10000, FALSE);
+            const DWORD dwResult = WSAWaitForMultipleEvents(1, &m_connectEvent, FALSE, 1000, FALSE);
+
             if (dwResult == WSA_WAIT_FAILED)
             {
                 NET_NAGOX_ASSERT_LOG(false, "WSA WAIT FAILED");
