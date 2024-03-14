@@ -17,6 +17,8 @@ namespace ServerCore
 
     };
 
+#pragma pack (push, 1)
+
     template <typename T>
     struct SimplePacket
         :public PacketHeader
@@ -58,6 +60,8 @@ namespace ServerCore
             return sendBuffer;
         }
     };
+
+#pragma pack (pop)
 
     template <typename T, typename U>
     struct SendSimplePacketData
@@ -102,6 +106,8 @@ namespace ServerCore
         pSession_->SendAsync(pkt_.MakeSendBuffer());
     }
 
+#pragma pack (push, 1)
+
     struct c2s_LOGIN
         :public SimplePacket<c2s_LOGIN>
     {
@@ -141,5 +147,5 @@ namespace ServerCore
         static const bool Handle(const S_ptr<PacketSession>& pSession_, const s2c_KEY& pkt_);
     };
 
-  
+#pragma pack (pop)
 }

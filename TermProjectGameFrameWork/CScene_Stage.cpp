@@ -63,7 +63,7 @@ void CScene_Stage::render(HDC _dc)
 	{
 		Mgr(CThreadMgr)->Join_all();
 
-		std::atomic_thread_fence(std::memory_order_seq_cst);
+		//std::atomic_thread_fence(std::memory_order_seq_cst);
 
 		static const int size = (int)m_vecLayer.size();
 
@@ -90,7 +90,7 @@ void CScene_Stage::render(HDC _dc)
 				if (vecPtr[i]->IsDead())
 				{
 					Mgr(CEventMgr)->AddDeadObj(vecPtr[i]);
-					vecPtr[i] = std::move(vecObj.back());
+					vecPtr[i].swap(vecObj.back());
 					vecObj.pop_back();
 				}
 				else

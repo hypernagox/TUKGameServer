@@ -17,6 +17,8 @@ namespace NetHelper
 
     };
 
+#pragma pack (push, 1)
+
     template <typename T>
     struct SimplePacket
         :public PacketHeader
@@ -59,13 +61,6 @@ namespace NetHelper
         }
     };
 
-    template <typename T, typename U>
-    struct SendSimplePacketData
-    {
-        T first;
-        U second;
-    };
-
     struct c2s_LOGIN
         :public SimplePacket<c2s_LOGIN>
     {
@@ -104,5 +99,5 @@ namespace NetHelper
         static const bool Handle(const S_ptr<PacketSession>& pSession_, const s2c_KEY& pkt_);
     };
 
- 
+#pragma pack (pop)
 }
