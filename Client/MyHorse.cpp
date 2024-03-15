@@ -16,29 +16,27 @@ MyHorse::~MyHorse()
 
 void MyHorse::update()
 {
+	NetHelper::c2s_KEY pkt;
+
 	if (KEY_TAP(VK_LEFT))
 	{
-		NetHelper::c2s_KEY pkt;
 		pkt.VK = VK_LEFT;
-		NetMgr(NetworkMgr)->Send(pkt.MakeSendBuffer());
+		Send(pkt);
 	}
 	if (KEY_TAP(VK_DOWN))
 	{
-		NetHelper::c2s_KEY pkt;
 		pkt.VK = VK_DOWN;
-		NetMgr(NetworkMgr)->Send(pkt.MakeSendBuffer());
+		Send(pkt);
 	}
 	if (KEY_TAP(VK_RIGHT))
 	{
-		NetHelper::c2s_KEY pkt;
 		pkt.VK = VK_RIGHT;
-		NetMgr(NetworkMgr)->Send(pkt.MakeSendBuffer());
+		Send(pkt);
 	}
 	if (KEY_TAP(VK_UP))
 	{
-		NetHelper::c2s_KEY pkt;
 		pkt.VK = VK_UP;
-		NetMgr(NetworkMgr)->Send(pkt.MakeSendBuffer());
+		Send(pkt);
 	}
 }
 
