@@ -39,7 +39,7 @@ namespace ServerCore
 			Node* const value = xnew<Node>(std::forward<Args>(args)...);
 			Node* oldTail = tail.load(std::memory_order_relaxed);
 			while (!tail.compare_exchange_weak(oldTail, value
-				, std::memory_order_release
+				, std::memory_order_relaxed
 				, std::memory_order_relaxed))
 			{
 			}

@@ -62,7 +62,7 @@ namespace ServerCore
             Block* const newBlock = std::construct_at<Block>(static_cast<Block* const>(::_aligned_malloc(blockSize, std::hardware_constructive_interference_size)));
             BlockChaser* const newTop = std::construct_at<BlockChaser>(static_cast<BlockChaser* const>(::HeapAlloc(g_handle, NULL, sizeof(BlockChaser))), newBlock, poolTop.load(std::memory_order_relaxed));
             while (!poolTop.compare_exchange_weak(newTop->next, newTop,
-                std::memory_order_acquire, std::memory_order_relaxed))
+                std::memory_order_relaxed, std::memory_order_relaxed))
             {
             }
             return reinterpret_cast<T* const>(newBlock + 1);
@@ -105,10 +105,10 @@ namespace ServerCore
                     return allocateNewBlock();
                 }
                 const uint32_t newTag = unpackTag(oldCombined) + 1;
-                const Block* const nextBlock = unpackPointer(currentBlock->combined.load(std::memory_order_relaxed));
+                const Block* const nextBlock = unpackPointer(currentBlock->combined.load(std::memory_order_acquire));
                 newCombined = packPointerAndTag(nextBlock, newTag);
             } while (!head.compare_exchange_weak(oldCombined, newCombined,
-                std::memory_order_acquire,
+                std::memory_order_relaxed,
                 std::memory_order_relaxed));
 
             return reinterpret_cast<T* const>(const_cast<Block* const>(currentBlock) + 1);
@@ -121,12 +121,13 @@ namespace ServerCore
                 return;
             }
             Block* const blockPtr = reinterpret_cast<Block* const>(object) - 1;
+            auto& block_combined = blockPtr->combined;
             uint64_t oldHead = head.load(std::memory_order_relaxed);
             uint64_t newCombined;
             do {
                 const uint32_t newTag = unpackTag(oldHead) + 1;
                 newCombined = packPointerAndTag(blockPtr, newTag);
-                blockPtr->combined.store(oldHead, std::memory_order_relaxed);
+                block_combined.store(oldHead, std::memory_order_relaxed);
             } while (!head.compare_exchange_weak(oldHead, newCombined,
                 std::memory_order_release,
                 std::memory_order_relaxed));
