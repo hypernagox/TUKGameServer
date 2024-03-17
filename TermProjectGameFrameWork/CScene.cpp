@@ -33,7 +33,7 @@ void CScene::render(HDC _dc)
 	for (auto& vecObj : m_vecObj)
 	{
 		const auto vecPtr = vecObj.data();
-		for (size_t i = 0, size = vecObj.size(); i < size;)
+		for (size_t i = 0; i < vecObj.size();)
 		{
 			if (vecPtr[i]->IsDead())
 			{

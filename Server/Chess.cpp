@@ -2,6 +2,7 @@
 #include "Chess.h"
 
 Chess::Chess()
+	:SessionManageable{ 0 }
 {
 	for (int y = 0; y < 8; ++y)
 	{

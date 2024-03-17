@@ -14,7 +14,7 @@ int main()
 			  ServerCore::MakeShared<ServerCore::IocpCore>()
 			, ServerCore::NetAddress{ L"0.0.0.0",7777 }
 			, ServerCore::MakePoolShared<ClientSession>
-			, 100
+			, 10
 		);
 
 	ASSERT_CRASH(pServerService->Start());

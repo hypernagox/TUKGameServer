@@ -6,6 +6,20 @@
 
 namespace ServerCore
 {
+	void CALLBACK RecvCompletionRoutine(
+		DWORD dwErrorCode,
+		DWORD dwNumberOfBytesTransfered,
+		LPOVERLAPPED lpOverlapped,
+		DWORD dwFlags
+	);
+
+	void CALLBACK SendCompletionRoutine(
+		DWORD dwErrorCode,
+		DWORD dwNumberOfBytesTransfered,
+		LPOVERLAPPED lpOverlapped,
+		DWORD dwFlags
+	);
+
 	class RecvEvent;
 	class Service;
 	class DisconnectEvent;
@@ -24,6 +38,18 @@ namespace ServerCore
 	class Session
 		:public IocpObject
 	{
+		friend void CALLBACK RecvCompletionRoutine(
+			DWORD dwErrorCode,
+			DWORD dwNumberOfBytesTransfered,
+			LPOVERLAPPED lpOverlapped,
+			DWORD dwFlags
+		);
+		friend void CALLBACK SendCompletionRoutine(
+			DWORD dwErrorCode,
+			DWORD dwNumberOfBytesTransfered,
+			LPOVERLAPPED lpOverlapped,
+			DWORD dwFlags
+		);
 		friend class Listener;
 		friend class IocpCore;
 		friend class PacketSession;
@@ -33,7 +59,8 @@ namespace ServerCore
 		~Session();
 		Session(const Session&) = delete;
 		Session& operator=(const Session&) = delete;
-		static inline const uint64 GetID(const S_ptr<const Session>& pSession_)noexcept { return pSession_->GetSessionID(); }
+		template <typename T> requires std::same_as<S_ptr<PacketSession>,T>
+		static inline const uint64 GetID(const T& pSession_)noexcept { return pSession_->GetSessionID(); }
 	public:
 		inline void TryRegisterSend()noexcept
 		{

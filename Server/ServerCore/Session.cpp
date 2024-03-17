@@ -43,7 +43,10 @@ namespace ServerCore
 
 		m_bConnectedNonAtomic = m_bConnectedNonAtomicForRecv = m_bConnected.load();
 		std::atomic_thread_fence(std::memory_order_release);
-		RegisterDisconnect();
+
+		ProcessDisconnect(SharedCastThis<PacketSession>());
+
+		//RegisterDisconnect();
 	}
 
 	bool Session::SetNagle(const bool bTrueIsOff_FalseIsOn)const noexcept
@@ -145,7 +148,7 @@ namespace ServerCore
 		WSABUF wsaBuf{ static_cast<const ULONG>(m_pRecvBuffer->FreeSize()),reinterpret_cast<char* const>(m_pRecvBuffer->WritePos()) };
 		DWORD numOfBytes;
 		DWORD flags = 0;
-		if (SOCKET_ERROR == ::WSARecv(m_sessionSocket, &wsaBuf, 1, &numOfBytes, &flags, m_pRecvEvent.get(), nullptr))
+		if (SOCKET_ERROR == ::WSARecv(m_sessionSocket, &wsaBuf, 1, &numOfBytes, &flags, m_pRecvEvent.get(), RecvCompletionRoutine))
 		{
 			const int32 errorCode = ::WSAGetLastError();
 			if (errorCode != WSA_IO_PENDING)
@@ -206,7 +209,7 @@ namespace ServerCore
 			//writeSize += sb->WriteSize();
 		}
 		DWORD numOfBytes;
-		if (SOCKET_ERROR == ::WSASend(m_sessionSocket, m_wsaBufs.data(), static_cast<const DWORD>(m_wsaBufs.size()), &numOfBytes, 0, m_pSendEvent.get(), nullptr))
+		if (SOCKET_ERROR == ::WSASend(m_sessionSocket, m_wsaBufs.data(), static_cast<const DWORD>(m_wsaBufs.size()), &numOfBytes, 0, m_pSendEvent.get(), SendCompletionRoutine))
 		{
 			const int32 errorCode = ::WSAGetLastError();
 			if (errorCode != WSA_IO_PENDING)
@@ -248,5 +251,17 @@ namespace ServerCore
 			//LOG_MSG(std::format(L"Handle Error: {}", errorCode));
 			break;
 		}
+	}
+
+	void RecvCompletionRoutine(DWORD dwErrorCode, DWORD dwNumberOfBytesTransfered, LPOVERLAPPED lpOverlapped, DWORD dwFlags)
+	{
+		const auto pSession = static_pointer_cast<PacketSession>(static_cast<RecvEvent* const>(lpOverlapped)->PassIocpObject());
+		pSession->ProcessRecv(pSession, dwNumberOfBytesTransfered);
+	}
+
+	void SendCompletionRoutine(DWORD dwErrorCode, DWORD dwNumberOfBytesTransfered, LPOVERLAPPED lpOverlapped, DWORD dwFlags)
+	{
+		const auto pSession = static_pointer_cast<PacketSession>(static_cast<RecvEvent* const>(lpOverlapped)->PassIocpObject());
+		pSession->ProcessSend(pSession, dwNumberOfBytesTransfered);
 	}
 }

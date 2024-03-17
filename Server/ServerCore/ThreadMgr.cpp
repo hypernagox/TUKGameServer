@@ -65,6 +65,8 @@ namespace ServerCore
 
 						pIocpCore->Dispatch(10);
 
+						::SleepEx(0, TRUE);
+
 						taskTimer->DistributeTask();
 
 						threadMgr->TryGlobalQueueTask();

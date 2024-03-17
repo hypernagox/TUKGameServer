@@ -14,7 +14,7 @@ ServerSession::~ServerSession()
 void ServerSession::OnConnected()
 {
 	NetHelper::c2s_LOGIN pkt;
-	Send(pkt.MakeSendBuffer());
+	NetHelper::Send(pkt);
 }
 
 void ServerSession::OnSend(c_int32 len) noexcept

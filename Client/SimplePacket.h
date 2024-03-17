@@ -7,14 +7,21 @@ namespace NetHelper
     class PacketSession;
     class SendBuffer;
 
+
     enum class SIMPLE_PKT : uint16
     {
         c2s_LOGIN = 1000,
         s2c_LOGIN = 1001,
 
-        c2s_KEY = 1002,
-        s2c_KEY = 1003,
+        c2s_NEW_PLAYER = 1002,
+        s2c_NEW_PLAYER = 1003,
 
+        c2s_KEY = 1004,
+        s2c_KEY = 1005,
+
+
+        c2s_LEAVE = 1006,
+        s2c_LEAVE = 1007,
     };
 
 #pragma pack (push, 1)
@@ -65,8 +72,6 @@ namespace NetHelper
         :public SimplePacket<c2s_LOGIN>
     {
         c2s_LOGIN() :SimplePacket<c2s_LOGIN>{ SIMPLE_PKT::c2s_LOGIN } {}
-
-
         static const bool Handle(const S_ptr<PacketSession>& pSession_, const c2s_LOGIN& pkt_);
     };
 
@@ -76,8 +81,26 @@ namespace NetHelper
         s2c_LOGIN() :SimplePacket<s2c_LOGIN>{ SIMPLE_PKT::s2c_LOGIN } {}
 
         int x, y;
+        uint64_t sessionID;
         Vec2 vInitPos;
         static const bool Handle(const S_ptr<PacketSession>& pSession_, const s2c_LOGIN& pkt_);
+    };
+
+    struct c2s_NEW_PLAYER
+        :public SimplePacket<c2s_NEW_PLAYER>
+    {
+        c2s_NEW_PLAYER():SimplePacket<c2s_NEW_PLAYER>{SIMPLE_PKT::c2s_NEW_PLAYER}{}
+        static const bool Handle(const S_ptr<PacketSession>& pSession_, const c2s_NEW_PLAYER& pkt_);
+    };
+
+    struct s2c_NEW_PLAYER
+        :public SimplePacket<s2c_NEW_PLAYER>
+    {
+        int x, y;
+        uint64_t otherID;
+        Vec2 vOtherPos;
+        s2c_NEW_PLAYER() :SimplePacket<s2c_NEW_PLAYER>{ SIMPLE_PKT::s2c_NEW_PLAYER } {}
+        static const bool Handle(const S_ptr<PacketSession>& pSession_, const s2c_NEW_PLAYER& pkt_);
     };
 
     struct c2s_KEY
@@ -86,6 +109,7 @@ namespace NetHelper
         c2s_KEY() :SimplePacket<c2s_KEY>{ SIMPLE_PKT::c2s_KEY } {}
 
         int VK;
+        uint64_t moveUserID;
         static const bool Handle(const S_ptr<PacketSession>& pSession_, const c2s_KEY& pkt_);
     };
 
@@ -96,7 +120,26 @@ namespace NetHelper
 
         int x, y;
         Vec2 vPos;
+        uint64_t moveUserID;
         static const bool Handle(const S_ptr<PacketSession>& pSession_, const s2c_KEY& pkt_);
+    };
+
+    struct c2s_LEAVE
+        :public SimplePacket<c2s_LEAVE>
+    {
+        c2s_LEAVE() :SimplePacket<c2s_LEAVE>{ SIMPLE_PKT::c2s_LEAVE } {}
+
+        uint64_t leaveUserID;
+        static const bool Handle(const S_ptr<PacketSession>& pSession_, const c2s_LEAVE& pkt_);
+    };
+
+    struct s2c_LEAVE
+        :public SimplePacket<s2c_LEAVE>
+    {
+        s2c_LEAVE() :SimplePacket<s2c_LEAVE>{ SIMPLE_PKT::s2c_LEAVE } {}
+
+        uint64_t leaveUserID;
+        static const bool Handle(const S_ptr<PacketSession>& pSession_, const s2c_LEAVE& pkt_);
     };
 
 #pragma pack (pop)

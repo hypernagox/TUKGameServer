@@ -12,9 +12,15 @@ namespace ServerCore
         c2s_LOGIN = 1000,
         s2c_LOGIN = 1001,
 
-        c2s_KEY = 1002,
-        s2c_KEY = 1003,
+        c2s_NEW_PLAYER = 1002,
+        s2c_NEW_PLAYER = 1003,
 
+        c2s_KEY = 1004,
+        s2c_KEY = 1005,
+
+
+        c2s_LEAVE = 1006,
+        s2c_LEAVE = 1007,
     };
 
 #pragma pack (push, 1)
@@ -71,19 +77,19 @@ namespace ServerCore
     };
 
     template<typename T>
-    static constexpr SendSimplePacketData<S_ptr<Session>, S_ptr<SendBuffer>> operator + (S_ptr<Session> pSendSession_, const SimplePacket<T>& pkt_)noexcept
+    static constexpr SendSimplePacketData<S_ptr<PacketSession>, S_ptr<SendBuffer>> operator + (S_ptr<PacketSession> pSendSession_, const SimplePacket<T>& pkt_)noexcept
     {
         return { std::move(pSendSession_), pkt_.MakeSendBuffer() };
     }
 
     template<typename T>
-    static constexpr SendSimplePacketData<S_ptr<SendBuffer>, uint64> operator - (const SimplePacket<T>& pkt_, const S_ptr<const Session>& pSendSession_)noexcept
+    static constexpr SendSimplePacketData<S_ptr<SendBuffer>, uint64> operator - (const SimplePacket<T>& pkt_, const S_ptr<PacketSession>& pSendSession_)noexcept
     {
         return { pkt_.MakeSendBuffer(),ServerCore::Session::GetID(pSendSession_) };
     }
 
     template<typename RoomPtr> requires std::convertible_to<RoomPtr, S_ptr<SessionManageable>> || std::convertible_to<RoomPtr, SessionManageable*>
-    static constexpr void operator<<(RoomPtr&& pRoom_, SendSimplePacketData<S_ptr<Session>, S_ptr<SendBuffer>>&& session_msg)noexcept
+    static constexpr void operator<<(RoomPtr&& pRoom_, SendSimplePacketData<S_ptr<PacketSession>, S_ptr<SendBuffer>>&& session_msg)noexcept
     {
         pRoom_->SendEnqueue(std::move(session_msg.first), std::move(session_msg.second));
     }
@@ -100,7 +106,7 @@ namespace ServerCore
         pRoom_->BroadCastEnqueue(pkt_.MakeSendBuffer());
     }
 
-    template<typename SessionPtr, typename T> requires std::convertible_to<SessionPtr, S_ptr<Session>>
+    template<typename SessionPtr, typename T> requires std::convertible_to<SessionPtr, S_ptr<Session>> || std::convertible_to<SessionPtr, Session*>
     static constexpr void operator<<(SessionPtr&& pSession_, const SimplePacket<T>& pkt_)noexcept
     {
         pSession_->SendAsync(pkt_.MakeSendBuffer());
@@ -112,8 +118,6 @@ namespace ServerCore
         :public SimplePacket<c2s_LOGIN>
     {
         c2s_LOGIN() :SimplePacket<c2s_LOGIN>{ SIMPLE_PKT::c2s_LOGIN } {}
-
-
         static const bool Handle(const S_ptr<PacketSession>& pSession_, const c2s_LOGIN& pkt_);
     };
 
@@ -123,17 +127,35 @@ namespace ServerCore
         s2c_LOGIN() :SimplePacket<s2c_LOGIN>{ SIMPLE_PKT::s2c_LOGIN } {}
 
         int x, y;
+        uint64_t sessionID;
         Vec2 vInitPos;
         static const bool Handle(const S_ptr<PacketSession>& pSession_, const s2c_LOGIN& pkt_);
     };
 
-    
+    struct c2s_NEW_PLAYER
+        :public SimplePacket<c2s_NEW_PLAYER>
+    {
+        c2s_NEW_PLAYER() :SimplePacket<c2s_NEW_PLAYER>{ SIMPLE_PKT::c2s_NEW_PLAYER } {}
+        static const bool Handle(const S_ptr<PacketSession>& pSession_, const c2s_NEW_PLAYER& pkt_);
+    };
+
+    struct s2c_NEW_PLAYER
+        :public SimplePacket<s2c_NEW_PLAYER>
+    {
+        int x, y;
+        uint64_t otherID;
+        Vec2 vOtherPos;
+        s2c_NEW_PLAYER() :SimplePacket<s2c_NEW_PLAYER>{ SIMPLE_PKT::s2c_NEW_PLAYER } {}
+        static const bool Handle(const S_ptr<PacketSession>& pSession_, const s2c_NEW_PLAYER& pkt_);
+    };
+
     struct c2s_KEY
         :public SimplePacket<c2s_KEY>
     {
         c2s_KEY() :SimplePacket<c2s_KEY>{ SIMPLE_PKT::c2s_KEY } {}
 
         int VK;
+        uint64_t moveUserID;
         static const bool Handle(const S_ptr<PacketSession>& pSession_, const c2s_KEY& pkt_);
     };
 
@@ -144,7 +166,26 @@ namespace ServerCore
 
         int x, y;
         Vec2 vPos;
+        uint64_t moveUserID;
         static const bool Handle(const S_ptr<PacketSession>& pSession_, const s2c_KEY& pkt_);
+    };
+
+    struct c2s_LEAVE
+        :public SimplePacket<c2s_LEAVE>
+    {
+        c2s_LEAVE() :SimplePacket<c2s_LEAVE>{ SIMPLE_PKT::c2s_LEAVE } {}
+
+        uint64_t leaveUserID;
+        static const bool Handle(const S_ptr<PacketSession>& pSession_, const c2s_LEAVE& pkt_);
+    };
+
+    struct s2c_LEAVE
+        :public SimplePacket<s2c_LEAVE>
+    {
+        s2c_LEAVE() :SimplePacket<s2c_LEAVE>{ SIMPLE_PKT::s2c_LEAVE } {}
+
+        uint64_t leaveUserID;
+        static const bool Handle(const S_ptr<PacketSession>& pSession_, const s2c_LEAVE& pkt_);
     };
 
 #pragma pack (pop)

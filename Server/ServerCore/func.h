@@ -5,6 +5,7 @@ namespace ServerCore
 	class SendBuffer;
 	class SessionManageable;
 	class Session;
+	class PacketSession;
 	class c2s_PacketHandler;
 	struct PacketHeader;
 
@@ -12,6 +13,8 @@ namespace ServerCore
 	constexpr const uint16 etoi(const T eType_)noexcept { return static_cast<const uint16>(eType_); }
 
 	void LogStackTrace()noexcept;
+
+	void PrintError(const char* const msg, const int err_no) noexcept;
 
 	template<typename T>
 	class AllocateSharedSizeTrait
@@ -70,19 +73,19 @@ namespace ServerCore
 	};
 
 	template<typename T> requires !std::derived_from<T, PacketHeader>
-	static constexpr SendPairData<S_ptr<Session>, S_ptr<SendBuffer>> operator + (S_ptr<Session> pSendSession_, T& pkt_)noexcept
+	static constexpr SendPairData<S_ptr<PacketSession>, S_ptr<SendBuffer>> operator + (S_ptr<PacketSession> pSendSession_, T& pkt_)noexcept
 	{
 		return { std::move(pSendSession_), c2s_PacketHandler::MakeSendBuffer(pkt_) };
 	}
 
 	template<typename T> requires !std::derived_from<T, PacketHeader>
-	static constexpr SendPairData<S_ptr<SendBuffer>, uint64> operator - (T& pkt_, const S_ptr<Session>& pSendSession_)noexcept
+	static constexpr SendPairData<S_ptr<SendBuffer>, uint64> operator - (T& pkt_, const S_ptr<PacketSession>& pSendSession_)noexcept
 	{
 		return { c2s_PacketHandler::MakeSendBuffer(pkt_),ServerCore::Session::GetID(pSendSession_) };
 	}
 
 	template<typename RoomPtr> requires std::convertible_to<RoomPtr, S_ptr<SessionManageable>> || std::convertible_to<RoomPtr, SessionManageable*>
-	static constexpr void operator<<(RoomPtr&& pRoom_, SendPairData<S_ptr<Session>, S_ptr<SendBuffer>>&& session_msg)noexcept
+	static constexpr void operator<<(RoomPtr&& pRoom_, SendPairData<S_ptr<PacketSession>, S_ptr<SendBuffer>>&& session_msg)noexcept
 	{
 		pRoom_->SendEnqueue(std::move(session_msg.first), std::move(session_msg.second));
 	}
@@ -99,7 +102,7 @@ namespace ServerCore
 		pRoom_->BroadCastEnqueue(c2s_PacketHandler::MakeSendBuffer(pkt_));
 	}
 
-	template<typename SessionPtr, typename T> requires std::convertible_to<SessionPtr, S_ptr<Session>> && !std::derived_from<T, PacketHeader>
+	template<typename SessionPtr, typename T> requires (std::convertible_to<SessionPtr, S_ptr<Session>> || std::convertible_to<SessionPtr, Session*>) && !std::derived_from<T, PacketHeader>
 	static constexpr void operator<<(SessionPtr&& pSession_, T& pkt_)noexcept
 	{
 		pSession_->SendAsync(c2s_PacketHandler::MakeSendBuffer(pkt_));

@@ -34,4 +34,20 @@ namespace ServerCore
 		sendBuffer->Close(sizeof(PacketHeader));
 		return sendBuffer;
 	}
+
+	void PrintError(const char* const msg, const int err_no) noexcept
+	{
+		WCHAR* msg_buf;
+		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL,
+			err_no,
+			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+			reinterpret_cast<LPWSTR>(&msg_buf),
+			0,
+			NULL
+		);
+		std::cout << msg;
+		std::wcout << L": ¿¡·¯ : " << msg_buf;
+		while (true);
+		LocalFree(msg_buf);
+	}
 }

@@ -10,11 +10,13 @@ public:
 	Chess();
 	~Chess();
 public:
-	Vec2 GetBoardPos(const int y_, const int x_)const { return m_chessBoard[y_][x_]; }
 	void Enter()override;
 	void render(HDC _dc)override;
+	void AddNewPlayer(const uint64_t newPlayerID_,const int y,const int x,const Vec2 pos);
+	const auto& GetOtherPlayerMap()const noexcept { return m_mapOtherPlayers; }
+	void LeavePlayer(const uint64_t leavePlayerID);
 private:
 	vector<unique_ptr<CLayer>> m_vecLayer;
-	Vec2 m_chessBoard[8][8];
+	unordered_map<uint64_t, class Horse*> m_mapOtherPlayers;
 };
 

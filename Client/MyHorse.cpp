@@ -17,6 +17,7 @@ MyHorse::~MyHorse()
 void MyHorse::update()
 {
 	NetHelper::c2s_KEY pkt;
+	pkt.moveUserID = NetMgr(NetworkMgr)->GetSessionID();
 
 	if (KEY_TAP(VK_LEFT))
 	{

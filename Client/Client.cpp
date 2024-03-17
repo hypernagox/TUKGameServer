@@ -10,6 +10,7 @@
 #include "CCore.h"
 #include "CSceneMgr.h"
 #include "Chess.h"
+#include "SimplePacket.h"
 
 #include <regex>
 
@@ -91,12 +92,21 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         }
     } while (!NetMgr(NetworkMgr)->Connect<ServerSession>(inputIP, 7777, NetHelper::s2c_PacketHandler::HandlePacket));
 
-    FreeConsole();
    
-
     Mgr(CSceneMgr)->AddScene(SCENE_TYPE::START, new Chess);
     Mgr(CSceneMgr)->init(SCENE_TYPE::START);
 
+    NetMgr(NetworkMgr)->DoNetworkIO(5000);
+
+    if (!NetMgr(NetworkMgr)->GetSession()->IsConnected())
+    {
+        char temp[255];
+        std::cout << "Server Is Full ... Enter Any Key And Please Retry \n";
+        std::cin >> temp;
+        exit(0);
+    }
+
+    FreeConsole();
     while (true)
     {
         if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
@@ -119,7 +129,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             CCore::GetInst()->progress();
         }
     }
-    
+
+    NetHelper::c2s_LEAVE pkt;
+    pkt.leaveUserID = NetMgr(NetworkMgr)->GetSessionID();
+    Send(pkt);
+    NetMgr(NetworkMgr)->DoNetworkIO();
+
     //UnhookWindowsHookEx(hHook);
 
     return (int)msg.wParam;

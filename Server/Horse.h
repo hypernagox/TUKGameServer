@@ -4,13 +4,15 @@
 class Horse
 {
 public:
+	Horse();
 	std::pair<POINT,Vec2> UpdateHorsePos(const int VK);
 	static Vec2 GetInitPos() { return g_board.GetBoardPos(0, 0); }
-private:
+public:
 	int m_xPos = 0;
 	int m_yPos = 0;
-
-
-	static inline const Chess g_board;
+	Vec2 m_vPos = {};
+public:
+	class ClientSession* m_pSession = nullptr;
+	static inline Chess g_board;
 };
 

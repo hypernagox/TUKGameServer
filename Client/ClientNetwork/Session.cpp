@@ -76,7 +76,7 @@ namespace NetHelper
 
 	void Session::ProcessConnect(c_int32 numofBytes_)
 	{
-		m_bConnected = true;
+		//m_bConnected = true;
 
 		m_pConnectEvent->ReleaseSession();
 
@@ -111,8 +111,8 @@ namespace NetHelper
 
 	void Session::RegisterRecv()noexcept
 	{
-		if (false == IsConnected())
-			return;
+		//if (false == IsConnected())
+		//	return;
 
 		m_pRecvEvent->Init();
 		m_pRecvEvent->SetSession(m_pCacheSharedFromThis);
@@ -164,8 +164,8 @@ namespace NetHelper
 
 	void Session::RegisterSend()noexcept
 	{
-		if (false == IsConnected())
-			return;
+		//if (false == IsConnected())
+		//	return;
 
 		m_pSendEvent->Init();
 		m_pSendEvent->SetSession(m_pCacheSharedFromThis);

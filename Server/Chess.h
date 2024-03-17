@@ -1,8 +1,9 @@
 #pragma once
 #include "pch.h"
-
+#include "SessionManageable.h"
 
 class Chess
+	:public ServerCore::SessionManageable
 {
 public:
 	Chess();

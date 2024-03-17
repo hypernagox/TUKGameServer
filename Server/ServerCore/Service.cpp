@@ -38,7 +38,8 @@ namespace ServerCore
 		auto pSession = m_sessionFactory();
 		pSession->SetService(this);
 		pSession->register_cache_shared_core(pSession);
-		return m_pIocpCore->RegisterIOCP(pSession.get()) ? std::move(pSession) : nullptr;
+		return pSession;
+		//return m_pIocpCore->RegisterIOCP(pSession.get()) ? std::move(pSession) : nullptr;
 	}
 
 	const bool Service::AddSession(S_ptr<Session>&& pSession_)noexcept
