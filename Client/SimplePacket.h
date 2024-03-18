@@ -44,7 +44,7 @@ namespace NetHelper
         {
         }
 
-        bool SerializeToArray(void* const buffer, const size_t dataSize)const noexcept {
+        bool SerializeToArray(void* const __restrict buffer, const size_t dataSize)const noexcept {
             if (sizeof(T) != dataSize) [[unlikely]]
                 return false;
             return ::memcpy(buffer, this, dataSize);

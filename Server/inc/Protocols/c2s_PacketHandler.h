@@ -43,6 +43,8 @@ namespace ServerCore
 					fpHandlerFunc = Handle_Invalid;
 			}
 		}
+		
+		static const PacketHandlerFunc* const GetPacketHandlerList()noexcept { return g_fpPacketHandler; }
 
 		static void AddProtocol(const uint16 pktID_, const PacketHandlerFunc fpPacketHandler_)noexcept
 		{

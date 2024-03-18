@@ -21,7 +21,7 @@ namespace NetHelper
 			if (dataSize < static_cast<c_int32>(sizeof(PacketHeader)))
 				break;
 
-			PacketHeader* const header = reinterpret_cast<PacketHeader* const>(buffer + processLen);
+			PacketHeader* const __restrict header = reinterpret_cast<PacketHeader* const>(buffer + processLen);
 			c_int32 packetSize = header->size;
 
 			if (dataSize < packetSize)

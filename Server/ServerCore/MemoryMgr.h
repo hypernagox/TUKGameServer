@@ -18,7 +18,6 @@ namespace ServerCore
 		friend class Singleton;
 		enum
 		{
-			// ~1024까지 32단위, ~2048까지 128단위, ~4096까지 256단위
 			POOL_COUNT = (1024 / 32) + (1024 / 128) + (2048 / 256),
 			MAX_ALLOC_SIZE = 4096
 		};
@@ -29,8 +28,6 @@ namespace ServerCore
 		void Release(void* const ptr)const noexcept;
 	private:
 		std::vector<AtomicNonTemplate*> m_pools;
-		// 메모리 크기 <-> 메모리 풀
-		// O(1) 빠르게 찾기 위한 테이블
 		AtomicNonTemplate* m_poolTable[MAX_ALLOC_SIZE + 1];
 		AtomicMemoryPool<AtomicNonTemplate> m_poolAllocator{ 64 };
 	};

@@ -96,11 +96,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     Mgr(CSceneMgr)->AddScene(SCENE_TYPE::START, new Chess);
     Mgr(CSceneMgr)->init(SCENE_TYPE::START);
 
+    ::SleepEx(1000, FALSE);
     NetMgr(NetworkMgr)->DoNetworkIO(5000);
 
+    std::atomic_thread_fence(std::memory_order_seq_cst);
     if (!NetMgr(NetworkMgr)->GetSession()->IsConnected())
     {
         char temp[255];
+
         std::cout << "Server Is Full ... Enter Any Key And Please Retry \n";
         std::cin >> temp;
         exit(0);

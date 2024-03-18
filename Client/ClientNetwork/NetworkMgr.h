@@ -28,7 +28,10 @@ namespace NetHelper
 		void SetSessionID(const uint64 sessionID_)const noexcept;
 		c_uint64 GetSessionID()const noexcept;
 		void FinishNetwork()noexcept;
-		void SetConnect()noexcept { m_c2sSession->m_bConnected = true; }
+		void SetConnect()noexcept { 
+			m_c2sSession->m_bConnected = true;
+			std::atomic_thread_fence(std::memory_order_seq_cst);
+		}
 	private:
 		bool Connect(std::wstring_view ip, uint16 port, const PacketHandleFunc handler)noexcept;
 	private:

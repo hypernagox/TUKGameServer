@@ -5,7 +5,7 @@
 #include "Chess.h"
 
 ClientSession::ClientSession()
-	: PacketSession{ ServerCore::c2s_PacketHandler::HandlePacket }
+	: PacketSession{ ServerCore::c2s_PacketHandler::GetPacketHandlerList()}
 	, m_pClientHorse{ ServerCore::MakeShared<Horse>() }
 {
 	m_pClientHorse->m_pSession = this;

@@ -37,7 +37,7 @@ namespace ServerCore
 		template <typename... Args>
 		void emplace(Args&&... args) noexcept {
 			Node* const value = xnew<Node>(std::forward<Args>(args)...);
-			Node* oldTail = tail.load(std::memory_order_relaxed);
+			Node* __restrict oldTail = tail.load(std::memory_order_relaxed);
 			while (!tail.compare_exchange_weak(oldTail, value
 				, std::memory_order_relaxed
 				, std::memory_order_relaxed))
@@ -83,7 +83,7 @@ namespace ServerCore
 		}
 		const bool try_pop_for_cv(T& _target, std::unique_lock<SpinLock>& cvLock)noexcept {
 			std::atomic_thread_fence(std::memory_order_acquire);
-			if (Node* const newHead = head->next)
+			if (Node* const __restrict newHead = head->next)
 			{
 				Node* const oldHead = head;
 				head = newHead;
@@ -99,7 +99,7 @@ namespace ServerCore
 		}
 		const bool try_pop_single(T& _target)noexcept {
 			std::atomic_thread_fence(std::memory_order_acquire);
-			if (Node* const newHead = head->next)
+			if (Node* const __restrict newHead = head->next)
 			{
 				Node* const oldHead = head;
 				head = newHead;
@@ -114,7 +114,7 @@ namespace ServerCore
 		}
 		const bool try_pop_single(Vector<T>& _targetForPushBack)noexcept {
 			std::atomic_thread_fence(std::memory_order_acquire);
-			if (Node* const newHead = head->next)
+			if (Node* const __restrict newHead = head->next)
 			{
 				Node* const oldHead = head;
 				head = newHead;

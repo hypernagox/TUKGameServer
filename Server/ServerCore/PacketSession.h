@@ -7,7 +7,7 @@ namespace ServerCore
 		:public Session
 	{
 	public:
-		PacketSession(const PacketHandleFunc sessionPacketHandler_)noexcept;
+		PacketSession(const PacketHandleFunc* const sessionPacketHandler_)noexcept;
 		~PacketSession();
 		virtual const RecvStatus OnRecv(BYTE* const buffer, c_int32 len, const S_ptr<PacketSession>& pThisSessionPtr)noexcept override sealed;
 	protected:

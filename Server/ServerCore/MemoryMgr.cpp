@@ -68,12 +68,10 @@ namespace ServerCore
 #else
 		if (allocSize > MAX_ALLOC_SIZE)
 		{
-			// 메모리 풀링 최대 크기를 벗어나면 일반 할당
 			return MemoryHeader::AttachHeader(static_cast<MemoryHeader* const>(::_aligned_malloc(allocSize, std::hardware_constructive_interference_size)),allocSize);
 		}
 		else
 		{
-			// 메모리 풀에서 꺼내온다
 			return MemoryHeader::AttachHeader(static_cast<MemoryHeader* const>(m_poolTable[allocSize]->allocate()),allocSize);
 		}
 #endif	
@@ -81,7 +79,7 @@ namespace ServerCore
 
 	void MemoryMgr::Release(void* const ptr)const noexcept
 	{
-		MemoryHeader* const header = MemoryHeader::DetachHeader(ptr);
+		MemoryHeader* const __restrict header = MemoryHeader::DetachHeader(ptr);
 		const size_t allocSize = header->allocSize;
 
 		NAGOX_ASSERT(allocSize > 0);
@@ -92,12 +90,10 @@ namespace ServerCore
 #else
 		if (allocSize > MAX_ALLOC_SIZE)
 		{
-			// 메모리 풀링 최대 크기를 벗어나면 일반 해제
 			::_aligned_free(header);
 		}
 		else
 		{
-			// 메모리 풀에 반납한다
 			m_poolTable[allocSize]->deallocate(header);
 		}
 #endif	

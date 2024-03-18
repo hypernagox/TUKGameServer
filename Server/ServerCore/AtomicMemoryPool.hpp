@@ -97,7 +97,7 @@ namespace ServerCore
         {
             uint64_t oldCombined = head.load(std::memory_order_relaxed);
             uint64_t newCombined;
-            const Block* currentBlock;
+            const Block* __restrict currentBlock;
             do {
                 currentBlock = unpackPointer(oldCombined);
                 if (!currentBlock)
@@ -121,7 +121,7 @@ namespace ServerCore
                 return;
             }
             Block* const blockPtr = reinterpret_cast<Block* const>(object) - 1;
-            auto& block_combined = blockPtr->combined;
+            auto& __restrict block_combined = blockPtr->combined;
             uint64_t oldHead = head.load(std::memory_order_relaxed);
             uint64_t newCombined;
             do {

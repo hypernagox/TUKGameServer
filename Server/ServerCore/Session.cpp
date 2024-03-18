@@ -9,7 +9,7 @@
 
 namespace ServerCore
 {
-	Session::Session(const PacketHandleFunc sessionPacketHandler_)noexcept
+	Session::Session(const PacketHandleFunc* const sessionPacketHandler_)noexcept
 		: m_pRecvEvent{ MakeUnique<RecvEvent>() }
 		, m_pConnectEvent{ MakeUnique<ConnectEvent>() }
 		, m_pDisconnectEvent{ MakeUnique<DisconnectEvent>() }
@@ -172,9 +172,8 @@ namespace ServerCore
 			Disconnect(L"OnWrite Overflow");
 			return;
 		}
-		const int32 dataSize = m_pRecvBuffer->DataSize(); // 더 읽어야할 데이터 w - r
-		// 컨텐츠 쪽에서 오버로딩 해야함
-
+		const int32 dataSize = m_pRecvBuffer->DataSize();
+		
 		const RecvStatus recvStatus = static_cast<PacketSession* const>(this)->PacketSession::OnRecv(m_pRecvBuffer->ReadPos(), dataSize, pThisSessionPtr);
 
 		if (false == recvStatus.bIsOK || recvStatus.processLen < 0 || dataSize < recvStatus.processLen || false == m_pRecvBuffer->OnRead(recvStatus.processLen))
@@ -183,7 +182,7 @@ namespace ServerCore
 			return;
 		}
 
-		m_pRecvBuffer->Clear(); // 커서 정리
+		m_pRecvBuffer->Clear(); 
 
 		RegisterRecv(pThisSessionPtr);
 	}

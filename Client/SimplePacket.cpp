@@ -19,6 +19,7 @@ namespace NetHelper
 
 	const bool s2c_LOGIN::Handle(const S_ptr<PacketSession>& pSession_, const s2c_LOGIN& pkt_)
 	{
+		
 		NetMgr(NetworkMgr)->SetConnect();
 		NetMgr(NetworkMgr)->SetSessionID(pkt_.sessionID);
 		GetServerSession()->GetHorse()->SetHorsePos(pkt_.y, pkt_.x, pkt_.vInitPos);
@@ -26,7 +27,7 @@ namespace NetHelper
 		c2s_NEW_PLAYER pkt;
 
 		Send(pkt);
-
+		std::cout << "Connect !\n";
 		return true;
 	}
 	const bool s2c_KEY::Handle(const S_ptr<PacketSession>& pSession_, const s2c_KEY& pkt_)

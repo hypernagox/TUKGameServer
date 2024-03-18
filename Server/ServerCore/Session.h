@@ -53,14 +53,14 @@ namespace ServerCore
 		friend class Listener;
 		friend class IocpCore;
 		friend class PacketSession;
-		using PacketHandleFunc = const bool(*)(const S_ptr<PacketSession>&, BYTE* const, c_int32)noexcept;
+		using PacketHandleFunc = const bool(*)(const S_ptr<PacketSession>&, BYTE* const, c_int32);
 	public:
-		Session(const PacketHandleFunc sessionPacketHandler_)noexcept;
+		Session(const PacketHandleFunc* const sessionPacketHandler_)noexcept;
 		~Session();
 		Session(const Session&) = delete;
 		Session& operator=(const Session&) = delete;
-		template <typename T> requires std::same_as<S_ptr<PacketSession>,T>
-		static inline const uint64 GetID(const T& pSession_)noexcept { return pSession_->GetSessionID(); }
+		template <typename T> requires std::convertible_to<T, S_ptr<PacketSession>>
+		static inline const uint64 GetID(const T& __restrict pSession_)noexcept { return pSession_->GetSessionID(); }
 	public:
 		inline void TryRegisterSend()noexcept
 		{
@@ -76,7 +76,6 @@ namespace ServerCore
 		{
 			if (false == IsConnected())
 				return;
-			// 현재 RegisterSend가 걸리지 않은 상태여야 걸어준다.
 			m_sendQueue.emplace(std::move(pSendBuff_));
 			if (false == m_bIsSendRegistered.exchange(true, std::memory_order_acq_rel))
 				RegisterSend();
@@ -138,7 +137,6 @@ namespace ServerCore
 
 		void HandleError(c_int32 errorCode);
 	protected:
-		// 컨텐츠단에서 구현 할 내용들 (오버라이딩)
 		virtual void OnConnected() abstract;
 		virtual const RecvStatus OnRecv(BYTE* const buffer, c_int32 len, const S_ptr<PacketSession>& pThisSessionPtr)noexcept abstract;
 		virtual void OnSend(c_int32 len)noexcept abstract;
@@ -160,7 +158,7 @@ namespace ServerCore
 		SOCKET m_sessionSocketForRecv = INVALID_SOCKET;
 		const U_ptr<RecvEvent> m_pRecvEvent;
 		const U_Pptr<RecvBuffer> m_pRecvBuffer;
-		const PacketHandleFunc m_sessionPacketHandler;
+		const PacketHandleFunc* const __restrict m_sessionPacketHandler;
 
 		const uint64 m_iSessionID;
 		std::atomic<ID_Ptr<SessionManageable>> m_CurrentSessionRoomInfo;
