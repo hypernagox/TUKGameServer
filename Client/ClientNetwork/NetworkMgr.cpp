@@ -62,7 +62,7 @@ namespace NetHelper
         m_c2sSession->m_pCacheSharedFromThis.reset();
     }
 
-    bool NetworkMgr::Connect(std::wstring_view ip, uint16 port, const PacketHandleFunc handler) noexcept
+    bool NetworkMgr::Connect(std::wstring_view ip, uint16 port, const PacketHandleFunc* const handler) noexcept
     {
         m_serverAddr = NetAddress{ ip.data(),port };
         const auto limitTick = ::GetTickCount64() + 1000;

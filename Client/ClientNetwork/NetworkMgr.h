@@ -13,7 +13,7 @@ namespace NetHelper
 		using PacketHandleFunc = const bool(*)(const S_ptr<PacketSession>&, BYTE* const, c_int32);
 	public:
 		template <typename T>requires std::derived_from<T, PacketSession>
-		bool Connect(std::wstring_view ip, uint16 port, const PacketHandleFunc handler, std::function<void(void)> disconnectFp = nullptr)
+		bool Connect(std::wstring_view ip, uint16 port, const PacketHandleFunc* const handler, std::function<void(void)> disconnectFp = nullptr)
 		{
 			//if (m_sessionFactory)
 			//	NET_NAGOX_ASSERT(false);
@@ -33,7 +33,7 @@ namespace NetHelper
 			std::atomic_thread_fence(std::memory_order_seq_cst);
 		}
 	private:
-		bool Connect(std::wstring_view ip, uint16 port, const PacketHandleFunc handler)noexcept;
+		bool Connect(std::wstring_view ip, uint16 port, const PacketHandleFunc* const handler)noexcept;
 	private:
 		S_ptr<PacketSession> m_c2sSession;
 		WSAEVENT m_connectEvent;

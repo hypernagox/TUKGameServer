@@ -34,12 +34,6 @@
     <Filter Include="Buffer\SendBuffer">
       <UniqueIdentifier>{f2704ed5-fae5-401a-b609-d696c7ef33cd}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Manager\SendBufferMgr">
-      <UniqueIdentifier>{5a5587ca-6477-46ee-a1dc-8a37c90c1c8b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Manager\SendBufferMgr\SendBufferChunk">
-      <UniqueIdentifier>{89977cc5-1c38-4ebf-bb11-1e74927fb549}</UniqueIdentifier>
-    </Filter>
     <Filter Include="NetEvents">
       <UniqueIdentifier>{5b0336cb-8342-47f6-9358-2b41ae45407b}</UniqueIdentifier>
     </Filter>
@@ -48,6 +42,12 @@
     </Filter>
     <Filter Include="Protocols">
       <UniqueIdentifier>{b1e5398a-2434-4883-9728-c4df80db05a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Manager\SendBufferMgr">
+      <UniqueIdentifier>{5a5587ca-6477-46ee-a1dc-8a37c90c1c8b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Manager\SendBufferMgr\SendBufferChunk">
+      <UniqueIdentifier>{89977cc5-1c38-4ebf-bb11-1e74927fb549}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

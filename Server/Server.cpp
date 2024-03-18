@@ -21,5 +21,5 @@ int main()
 
 	Mgr(ThreadMgr)->Launch(pServerService);
 
-	google::protobuf::ShutdownProtobufLibrary();
+	//google::protobuf::ShutdownProtobufLibrary();
 }

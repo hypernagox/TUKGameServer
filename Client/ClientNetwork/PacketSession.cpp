@@ -21,20 +21,21 @@ namespace NetHelper
 			if (dataSize < static_cast<c_int32>(sizeof(PacketHeader)))
 				break;
 
-			PacketHeader* const __restrict header = reinterpret_cast<PacketHeader* const>(buffer + processLen);
+			const PacketHeader* const __restrict header = reinterpret_cast<const PacketHeader* const>(buffer + processLen);
 			c_int32 packetSize = header->size;
+			c_int32 packetId = header->id;
 
 			if (dataSize < packetSize)
 				break;
 
 
-			if (static_cast<c_int32>(HEART_BEAT::s2c_HEART_BEAT) == header->id)
+			if (static_cast<c_int32>(HEART_BEAT::s2c_HEART_BEAT) == packetId)
 			{
 				Send(CreateHeartBeatSendBuffer(HEART_BEAT::c2s_HEART_BEAT));
 			}
 			else
 			{
-				m_sessionPacketHandler(GetCacheSharedFromThis(), reinterpret_cast<BYTE* const>(header), packetSize);
+				m_sessionPacketHandler[packetId](GetCacheSharedFromThis(), reinterpret_cast<BYTE* const>(const_cast<PacketHeader* const>(header)), packetSize);
 			}
 
 			processLen += packetSize;

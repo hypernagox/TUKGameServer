@@ -44,6 +44,8 @@ namespace NetHelper
 			}
 		}
 		
+		static const PacketHandlerFunc* const GetPacketHandlerList()noexcept { return g_fpPacketHandler; }
+
 		static void AddProtocol(const uint16 pktID_, const PacketHandlerFunc fpPacketHandler_)noexcept
 		{
 			NET_NAGOX_ASSERT(nullptr == g_fpPacketHandler[pktID_] || Handle_Invalid == g_fpPacketHandler[pktID_]);

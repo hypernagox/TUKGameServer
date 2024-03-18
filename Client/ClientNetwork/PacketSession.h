@@ -17,6 +17,6 @@ namespace NetHelper
 		virtual void OnSend(c_int32 len) {}
 		virtual void OnDisconnected()abstract;
 	private:
-		PacketHandleFunc m_sessionPacketHandler;
+		const PacketHandleFunc* __restrict m_sessionPacketHandler;
 	};
 }

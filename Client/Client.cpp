@@ -90,7 +90,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             std::wcout << L"Invalid Address !'\n";
             goto RE_INPUT;
         }
-    } while (!NetMgr(NetworkMgr)->Connect<ServerSession>(inputIP, 7777, NetHelper::s2c_PacketHandler::HandlePacket));
+    } while (!NetMgr(NetworkMgr)->Connect<ServerSession>(inputIP, 7777, NetHelper::s2c_PacketHandler::GetPacketHandlerList()));
 
    
     Mgr(CSceneMgr)->AddScene(SCENE_TYPE::START, new Chess);
