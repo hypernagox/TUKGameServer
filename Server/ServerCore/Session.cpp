@@ -146,9 +146,9 @@ namespace ServerCore
 		m_pRecvEvent->SetIocpObject(pThisSessionPtr);
 
 		WSABUF wsaBuf{ static_cast<const ULONG>(m_pRecvBuffer->FreeSize()),reinterpret_cast<char* const>(m_pRecvBuffer->WritePos()) };
-		DWORD numOfBytes;
+		//DWORD numOfBytes;
 		DWORD flags = 0;
-		if (SOCKET_ERROR == ::WSARecv(m_sessionSocket, &wsaBuf, 1, &numOfBytes, &flags, m_pRecvEvent.get(), RecvCompletionRoutine))
+		if (SOCKET_ERROR == ::WSARecv(m_sessionSocket, &wsaBuf, 1, NULL, &flags, m_pRecvEvent.get(), RecvCompletionRoutine))
 		{
 			const int32 errorCode = ::WSAGetLastError();
 			if (errorCode != WSA_IO_PENDING)
@@ -207,8 +207,8 @@ namespace ServerCore
 			m_wsaBufs.emplace_back(static_cast<const ULONG>(sb->WriteSize()), reinterpret_cast<char* const>(sb->Buffer()));
 			//writeSize += sb->WriteSize();
 		}
-		DWORD numOfBytes;
-		if (SOCKET_ERROR == ::WSASend(m_sessionSocket, m_wsaBufs.data(), static_cast<const DWORD>(m_wsaBufs.size()), &numOfBytes, 0, m_pSendEvent.get(), SendCompletionRoutine))
+		//DWORD numOfBytes;
+		if (SOCKET_ERROR == ::WSASend(m_sessionSocket, m_wsaBufs.data(), static_cast<const DWORD>(m_wsaBufs.size()), NULL, 0, m_pSendEvent.get(), SendCompletionRoutine))
 		{
 			const int32 errorCode = ::WSAGetLastError();
 			if (errorCode != WSA_IO_PENDING)
