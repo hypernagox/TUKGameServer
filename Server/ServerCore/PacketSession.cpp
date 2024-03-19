@@ -24,21 +24,20 @@ namespace ServerCore
 				break;
 
 			const PacketHeader* const __restrict header = reinterpret_cast<const PacketHeader* const>(buffer + processLen);
-			c_int32 packetSize = header->size;
-			c_int32 packetId = header->id;
-			
+			c_int32 packetSize = header->pkt_size;
+			c_uint16 packetId = header->pkt_id;
+
 			if (dataSize < packetSize)
 				break;
 
 			
-			if (static_cast<c_int32>(HEART_BEAT::c2s_HEART_BEAT) == packetId)
+			if (static_cast<c_uint16>(HEART_BEAT::c2s_HEART_BEAT) == packetId)
 			{
 				SetHeartBeat(true);
 			}
 			else
 			{
 				bIsOk &= m_sessionPacketHandler[packetId](pThisSessionPtr, reinterpret_cast<BYTE* const>(const_cast<PacketHeader* const>(header)), packetSize);
-				//bIsOk &= m_sessionPacketHandler(pThisSessionPtr, reinterpret_cast<BYTE* const>(const_cast<PacketHeader* const>(header)), packetSize);
 			}
 
 			processLen += packetSize;

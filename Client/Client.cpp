@@ -97,10 +97,21 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     Mgr(CSceneMgr)->init(SCENE_TYPE::START);
 
     ::SleepEx(1000, FALSE);
-    NetMgr(NetworkMgr)->DoNetworkIO(5000);
 
-    std::atomic_thread_fence(std::memory_order_seq_cst);
-    if (!NetMgr(NetworkMgr)->GetSession()->IsConnected())
+    const auto limitTick = ::GetTickCount64() + 2000;
+    bool bConnectSuccess = false;
+    while (::GetTickCount64() < limitTick)
+    {
+        NetMgr(NetworkMgr)->DoNetworkIO();
+        std::atomic_thread_fence(std::memory_order_seq_cst);
+        if (NetMgr(NetworkMgr)->GetSession()->IsConnected())
+        {
+            bConnectSuccess = true;
+            break;
+        }
+    }
+
+    if (!bConnectSuccess)
     {
         char temp[255];
 

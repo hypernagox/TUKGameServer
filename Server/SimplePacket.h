@@ -33,7 +33,7 @@ namespace ServerCore
         static bool InitSimplePacket()noexcept
         {
             T temp;
-            c2s_PacketHandler::AddProtocol(static_cast<c_uint16>(temp.id), &T::HandlePacket);
+            c2s_PacketHandler::AddProtocol(static_cast<c_uint16>(temp.pkt_id), &T::HandlePacket);
             return true;
         }
         static const inline bool g_bInitPacket = InitSimplePacket();

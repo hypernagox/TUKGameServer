@@ -34,7 +34,7 @@ namespace NetHelper
         static bool InitSimplePacket()noexcept
         {
             T temp;
-            s2c_PacketHandler::AddProtocol(static_cast<c_uint16>(temp.id), &T::HandlePacket);
+            s2c_PacketHandler::AddProtocol(static_cast<c_uint16>(temp.pkt_id), &T::HandlePacket);
             return true;
         }
         static const inline bool g_bInitPacket = InitSimplePacket();
