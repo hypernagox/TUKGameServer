@@ -24,8 +24,8 @@ namespace ServerCore
 
 	Session::~Session()
 	{
-		CancelIoEx(reinterpret_cast<HANDLE>(m_sessionSocket), NULL);
-		shutdown(m_sessionSocket, SD_BOTH);
+		//CancelIoEx(reinterpret_cast<HANDLE>(m_sessionSocket), NULL);
+		//shutdown(m_sessionSocket, SD_BOTH);
 		SocketUtils::Close(m_sessionSocket);
 		m_sessionSocketForRecv = INVALID_SOCKET;
 	}
@@ -79,7 +79,7 @@ namespace ServerCore
 
 		DWORD numOfBytes = 0;
 
-		if (false == SocketUtils::ConnectEx(m_sessionSocket, reinterpret_cast<const SOCKADDR* const>(&sockAddr), sizeof(sockAddr), nullptr, 0, &numOfBytes, m_pConnectEvent.get()))
+		if (false == SocketUtils::ConnectEx(m_sessionSocket, reinterpret_cast<const SOCKADDR* const>(&sockAddr), sizeof(sockAddr), NULL, NULL, NULL, m_pConnectEvent.get()))
 		{
 			const int32 errorCode = ::WSAGetLastError();
 			if (errorCode != WSA_IO_PENDING)

@@ -164,8 +164,7 @@ namespace ServerCore
 			return bIsEmpty;
 		}
 		const bool empty_single()const noexcept {
-			std::atomic_thread_fence(std::memory_order_acquire);
-			return !head->next;
+			return tail.load(std::memory_order_acquire) == head;
 		}
 		void clear() noexcept {
 			{
