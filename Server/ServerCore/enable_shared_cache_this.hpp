@@ -48,6 +48,7 @@ namespace ServerCore
 
 	template <typename T>
 	class enable_shared_cache_this_core
+		//:public std::enable_shared_from_this<T>
 	{
 	public:
 		void register_cache_shared_core(const S_ptr<T>& pForRegisterSharedThis)noexcept {
@@ -68,14 +69,14 @@ namespace ServerCore
 		template<typename U>
 		S_ptr<U> SharedCastThis() noexcept {
 			if constexpr (std::same_as<U, T>)
-				return shared_from_this();
+				return std::enable_shared_from_this<T>::shared_from_this();
 			else
 				return S_ptr<U>{m_forSharedFromThis, static_cast<U* const>(this)};
 		}
 		template<typename U>
 		S_ptr<const U> SharedCastThis() const noexcept {
 			if constexpr (std::same_as<U, T>)
-				return shared_from_this();
+				return std::enable_shared_from_this<T>::shared_from_this();
 			else
 				return S_ptr<const U>{m_forSharedFromThis, static_cast<const U* const>(this)};
 		}
