@@ -16,7 +16,7 @@ namespace ServerCore
 		private:
 			Log(std::wstring&& msg)noexcept :logMsg{ std::move(msg) }
 			{
-				//Mgr(Logger)->EnqueueLogMsg(std::format(L"{} Start", logMsg));
+			//	Mgr(Logger)->EnqueueLogMsg(std::format(L"{} Start", logMsg));
 			}
 		public:
 			~Log()noexcept
