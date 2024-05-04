@@ -3,7 +3,12 @@
 
 Horse::Horse()
 {
-	m_vPos = g_board.GetBoardPos(m_yPos, m_xPos);
+	//m_vPos = g_board->GetBoardPos(m_yPos, m_xPos);
+}
+
+Horse::~Horse()
+{
+	// std::cout << "DESTROY HORSE" << std::endl;
 }
 
 std::pair<POINT, Vec2> Horse::UpdateHorsePos(const int VK)
@@ -25,6 +30,6 @@ std::pair<POINT, Vec2> Horse::UpdateHorsePos(const int VK)
 	{
 		m_yPos = wrapAround(m_yPos - 1, 0, 8);
 	}
-	m_vPos = g_board.GetBoardPos(m_yPos, m_xPos);
+	//m_vPos = g_board->GetBoardPos(m_yPos, m_xPos);
 	return { { m_xPos,m_yPos },m_vPos };
 }
