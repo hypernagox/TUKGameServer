@@ -7,13 +7,22 @@ namespace ServerCore
     {
     public:
         SRWLock()noexcept { InitializeSRWLock(&SRW_lock); }
-        void lock() noexcept { AcquireSRWLockExclusive(&SRW_lock); }
-        void unlock()noexcept { ReleaseSRWLockExclusive(&SRW_lock); }
-        void lock_shared()noexcept { AcquireSRWLockShared(&SRW_lock); }
-        void unlock_shared()noexcept { ReleaseSRWLockShared(&SRW_lock); }
-        const bool try_lock() noexcept { return FALSE != TryAcquireSRWLockExclusive(&SRW_lock); }
-        const bool try_lock_shared()noexcept { return FALSE != TryAcquireSRWLockShared(&SRW_lock); }
+        inline void lock()const noexcept { AcquireSRWLockExclusive(&SRW_lock); }
+        inline void unlock()const noexcept { ReleaseSRWLockExclusive(&SRW_lock); }
+        inline void lock_shared()const noexcept { AcquireSRWLockShared(&SRW_lock); }
+        inline void unlock_shared()const noexcept { ReleaseSRWLockShared(&SRW_lock); }
+        inline const bool try_lock()const noexcept { return FALSE != TryAcquireSRWLockExclusive(&SRW_lock); }
+        inline const bool try_lock_shared()const noexcept { return FALSE != TryAcquireSRWLockShared(&SRW_lock); }
     private:
-        SRWLOCK SRW_lock;
+        mutable SRWLOCK SRW_lock;
+    };
+
+    class SRWLockGuard
+    {
+    public:
+        SRWLockGuard(SRWLock& srwLock_)noexcept :m_srwLock{ srwLock_ } { m_srwLock.lock_shared(); }
+        ~SRWLockGuard()noexcept { m_srwLock.unlock_shared(); }
+    private:
+        const SRWLock& m_srwLock;
     };
 }
