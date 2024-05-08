@@ -23,7 +23,7 @@ namespace ServerCore
 		constexpr const EVENT_TYPE GetEventType()const noexcept { return m_eEVENT_TYPE; }
 		void SetIocpObject(S_ptr<IocpObject>&& pIocp_)noexcept { m_pIocpObject.swap(pIocp_); }
 		const S_ptr<IocpObject>& GetIocpObject()const noexcept { return m_pIocpObject; }
-		S_ptr<IocpObject> ReleaseIocpObject()noexcept { return S_ptr<IocpObject>{std::move(m_pIocpObject)}; }
+		void ReleaseIocpObject()noexcept { m_pIocpObject.reset(); }
 		[[nodiscard]] constexpr __forceinline S_ptr<IocpObject>&& PassIocpObject()noexcept { return std::move(m_pIocpObject); }
 		template<typename T> requires std::derived_from<T, IocpEvent>
 		T* const Cast()noexcept;
@@ -104,6 +104,12 @@ namespace ServerCore
 	public:
 		SendEvent() :IocpEvent{ EVENT_TYPE::SEND } {}
 		~SendEvent();
+	public:
+		void SetRegisterSendEvent(const S_ptr<PacketSession>& pSession)noexcept {
+			if (nullptr == m_registerSendEvent.GetIocpObject())
+				m_registerSendEvent.SetIocpObject(std::reinterpret_pointer_cast<IocpObject>(pSession));
+		}
+		IocpEvent m_registerSendEvent{ EVENT_TYPE::REGISTER_SEND };
 		Vector<S_ptr<SendBuffer>> sendBuffer;
 	};
 }
