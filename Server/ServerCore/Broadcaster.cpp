@@ -5,7 +5,7 @@
 #include "../ClientSession.h"
 #include "../Horse.h"
 
-extern std::function<bool(ServerCore::Session*, ServerCore::Session*)> g_huristic;
+//extern std::function<bool(ServerCore::Session*, ServerCore::Session*)> g_huristic;
 
 namespace ServerCore
 {
@@ -17,106 +17,121 @@ namespace ServerCore
 	{
 	}
 
-	void Broadcaster::BroadcastMove(
+	const int Broadcaster::BroadcastMove(
 		const S_ptr<SendBuffer>& in_pkt,
 		const S_ptr<SendBuffer>& out_pkt,
 		const S_ptr<SendBuffer>& move_pkt,
-		const S_ptr<Session>& thisSession,
-		const Vector<SessionManageable*>& sectors
+		const S_ptr<IocpEntity>& thisSession_,
+		const Vector<SessionManageable*>* const sectors
 	)noexcept
 	{
-		//thread_local HashSet<S_ptr<PacketSession>> new_view_list;
+		if (IDLE != m_work_flag.exchange(WORK, std::memory_order_relaxed))
+			return NONE;
+		int sector_state = 0;
 		
-		new_view_list.clear();
-
-		//session_list_lock.lock_shared();
-		for (const auto sector : sectors)
+		const uint16 obj_type = thisSession_->GetObjectType();
+		const auto thisSession = thisSession_->IsSession();
+		if (thisSession)
 		{
-			sector->m_srwLock.lock_shared();
-			for (const auto pSession : sector->GetSessionList())
+			if (false == thisSession->IsConnectedAtomic())
+				return NONE;
+		}
+		const auto cache_obj_ptr = thisSession_.get();
+		const bool bIsNPC = 0 != obj_type;
+
+		thread_local HashSet<S_ptr<IocpEntity>> new_view_list;
+		new_view_list.clear();
+		for (const auto sector : *sectors)
+		{
+			sector->GetSRWLock().lock_shared();
+			for (const auto pSession : sector->GetObjectList())
 			{
-				if (thisSession.get() == pSession)continue;
-				if (pSession->IsConnected())
+				const bool bFlag = static_cast<const bool>(pSession->IsSession());
+				if (bIsNPC && !bFlag)
+					continue;
+				if (auto pValid = pSession->GetSharedThis())
 				{
-					if (g_huristic(thisSession.get(), pSession)) 
+					if (g_huristic(cache_obj_ptr, pSession))
 					{
-						new_view_list.emplace(pSession->SharedCastThis<PacketSession>());
+						new_view_list.emplace(std::move(pValid));
+						sector_state |= (bFlag + 1);
 					}
 				}
 			}
-			sector->m_srwLock.unlock_shared();
+			sector->GetSRWLock().unlock_shared();
 		}
-		//session_list_lock.unlock_shared();
-		//std::ranges::sort(new_view_list, {}, &Session::GetSessionID);
-		//auto& m_viewList = m_viewList2[Mgr(ThreadMgr)->GetCurThreadIdx()];
-		//ServerCore::SC_REMOVE_PLAYER_PACKET remove_packet;
-		//{
-		//	remove_packet.id = (short)pSession_->GetSessionID();
-		//	remove_packet.pkt_size = sizeof(remove_packet);
-		//	remove_packet.pkt_id = SC_REMOVE_PLAYER;
-		//}
-		//SC_ADD_PLAYER_PACKET add_packet;
-		//{
-		//	add_packet.id = (short)pClient->GetSessionID();
-		//	strcpy_s(add_packet.name, pClient->getName());
-		//	add_packet.pkt_size = sizeof(add_packet);
-		//	add_packet.pkt_id = SC_ADD_PLAYER;
-		//	add_packet.x = (short)pClient->GetHorse()->m_xPos;
-		//	add_packet.y = (short)pClient->GetHorse()->m_yPos;
-		//}
-		//m_spinLock.lock();
-		for (const auto& pSession : new_view_list)
+		new_view_list.erase(thisSession_);
+
+		for (const auto& pEntity : new_view_list)
 		{
-			//const auto iter = std::ranges::lower_bound(m_viewList, pSession->GetSessionID(), {}, &Session::GetSessionID);
-			if (!m_viewList.contains(pSession))
+			if (!m_viewList.contains(pEntity))
 			{
 				// 추가하고 입장패킷을 보낸다
 				//thisSession->SendAsync(in_pkt);
-				pSession->SendAsync(in_pkt);
-				SC_ADD_PLAYER_PACKET add_packet;
+				if (const auto pSession = pEntity->IsSession())
+					pSession->SendAsync(in_pkt);
+
+				//pEntity->IsSession()->SendAsync(in_pkt);
+
+				//SC_ADD_PLAYER_PACKET add_packet;
 				{
-					const auto pClient = static_cast<ClientSession*>(pSession.get());
-					add_packet.id = (short)pSession->GetSessionID();
-					strcpy_s(add_packet.name, pClient->getName());
-					add_packet.pkt_size = sizeof(add_packet);
-					add_packet.pkt_id = SC_ADD_PLAYER;
-					add_packet.x = (short)pClient->GetHorse()->m_xPos;
-					add_packet.y = (short)pClient->GetHorse()->m_yPos;
+					//const auto pClient = static_cast<ClientSession*>(pSession.get());
+					//add_packet.id = (short)pSession->GetSessionID();
+					//strcpy_s(add_packet.name, pClient->getName());
+					//add_packet.pkt_size = sizeof(add_packet);
+					//add_packet.pkt_id = SC_ADD_PLAYER;
+					//add_packet.x = (short)pClient->GetHorse()->m_xPos;
+					//add_packet.y = (short)pClient->GetHorse()->m_yPos;
 				}
-				thisSession->SendAsync(add_packet.MakeSendBuffer());
+				if (thisSession)
+					thisSession->SendAsync(g_create_in_pkt(pEntity));
 				//thisSession->SendAsync(move_pkt);
 				//pSession->SendAsync(move_pkt);
 				//m_viewList.emplace(static_cast<PacketSession* const>(pSession));
-				m_viewList.emplace(pSession);
+				m_viewList.emplace(pEntity);
 			}
 			else
 			{
 				// 이동패킷을 보내면 된다
-				thisSession->SendAsync(move_pkt);
-				pSession->SendAsync(move_pkt);
+				if (thisSession)
+					thisSession->SendAsync(move_pkt);
+				if (const auto pSession = pEntity->IsSession())
+					pSession->SendAsync(move_pkt);
+				//pEntity->IsSession()->SendAsync(move_pkt);
 			}
 		}
 
 		//m_viewList.sort([](const Session* const a, const Session* const b)noexcept {return *a < *b; });
 		const auto e_iter = new_view_list.cend();
+		//if (m_viewList.empty())return;
 		for (auto iter = m_viewList.cbegin(); iter != m_viewList.cend();)
 		{
-			const auto& pSession = *iter;
+			//const auto pEntity = iter->second.lock();
+			const auto& pEntity = *iter;
+			//if (nullptr == pEntity)
+			//{
+			//	iter = m_viewList.erase(iter);
+			//	cont
+			//}
 			//const auto target = std::ranges::lower_bound(new_view_list, pSession->GetSessionID(), {}, &Session::GetSessionID);
-			const auto target = new_view_list.find(pSession);
+			const auto target = new_view_list.find(pEntity);
+
 			if (e_iter == target)
 			{
 				// 없앤다
 				//thisSession->SendAsync(out_pkt);
-				pSession->SendAsync(out_pkt);
-				ServerCore::SC_REMOVE_PLAYER_PACKET remove_packet;
-				{
-					
-					remove_packet.id = (short)pSession->GetSessionID();
-					remove_packet.pkt_size = sizeof(remove_packet);
-					remove_packet.pkt_id = SC_REMOVE_PLAYER;
-				}
-				thisSession->SendAsync(remove_packet.MakeSendBuffer());
+				if (const auto pSession = pEntity->IsSession())
+					pSession->SendAsync(out_pkt);
+				//pEntity->IsSession()->SendAsync(out_pkt);
+				//ServerCore::SC_REMOVE_PLAYER_PACKET remove_packet;
+				//{
+				//	
+				//	//remove_packet.id = (short)pSession->GetSessionID();
+				//	remove_packet.pkt_size = sizeof(remove_packet);
+				//	remove_packet.pkt_id = SC_REMOVE_PLAYER;
+				//}
+				if (thisSession)
+					thisSession->SendAsync(g_create_out_pkt(pEntity));
 				iter = m_viewList.erase(iter);
 			}
 			else
@@ -124,6 +139,13 @@ namespace ServerCore
 				++iter;
 			}
 		}
-		//m_spinLock.unlock();
+		
+		if (WORK != m_work_flag.exchange(IDLE, std::memory_order_release))
+		{
+			m_viewList.clear();
+			return STOP;
+		}
+			
+		return 3 ^ sector_state;
 	}
 }

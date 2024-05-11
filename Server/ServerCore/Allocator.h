@@ -13,8 +13,8 @@ namespace ServerCore
 		enum { PAGE_SIZE = 0x1000 };
 
 	public:
-		static void* Alloc(const size_t size);
-		static void		Release(void* ptr);
+		static void* const Alloc(const size_t size)noexcept;
+		static void	Release(void* const ptr)noexcept;
 	};
 
 	/*-------------------

@@ -1,26 +1,41 @@
 #pragma once
-#include "c2s_PacketHandler.h"
+//#include "../Protocols/c2s_PacketHandler.h"
+#include "inc/Protocols/c2s_PacketHandler.h"
 #include "PacketArray.hpp"
+
+constexpr int PORT_NUM = 4000;
+constexpr int BUF_SIZE = 200;
+constexpr int NAME_SIZE = 20;
+
+constexpr int MAX_USER = 5000;
+
+constexpr int W_WIDTH = 400*5;
+constexpr int W_HEIGHT = 400*5;
+
+// Packet ID
+constexpr char CS_LOGIN = 0;
+constexpr char CS_MOVE = 1;
+
+constexpr char SC_LOGIN_INFO = 2;
+constexpr char SC_ADD_PLAYER = 3;
+constexpr char SC_REMOVE_PLAYER = 4;
+constexpr char SC_MOVE_PLAYER = 5;
 
 namespace ServerCore
 {
     class PacketSession;
     class SendBuffer;
 
-    enum class SIMPLE_PKT : uint16
+    enum class SIMPLE_PKT : int8
     {
-        c2s_LOGIN = 1000,
-        s2c_LOGIN = 1001,
+        CS_LOGIN = 0,
+        CS_MOVE = 1,
+        SC_LOGIN_INFO = 2,
+        SC_ADD_PLAYER = 3,
+        SC_REMOVE_PLAYER = 4,
+        SC_MOVE_PLAYER = 5,
 
-        c2s_NEW_PLAYER = 1002,
-        s2c_NEW_PLAYER = 1003,
-
-        c2s_KEY = 1004,
-        s2c_KEY = 1005,
-
-
-        c2s_LEAVE = 1006,
-        s2c_LEAVE = 1007,
+        END
     };
 
 #pragma pack (push, 1)
@@ -39,7 +54,7 @@ namespace ServerCore
         static const inline bool g_bInitPacket = InitSimplePacket();
     public:
         SimplePacket(const SIMPLE_PKT pktID_)noexcept
-            :PacketHeader{ sizeof(T),static_cast<c_uint16>(pktID_) }
+            :PacketHeader{ sizeof(T),static_cast<c_int8>(pktID_) }
         {
         }
 
@@ -113,79 +128,58 @@ namespace ServerCore
     }
 
 #pragma pack (push, 1)
-
-    struct c2s_LOGIN
-        :public SimplePacket<c2s_LOGIN>
+    struct CS_LOGIN_PACKET 
+        :public SimplePacket<CS_LOGIN_PACKET>
     {
-        c2s_LOGIN() :SimplePacket<c2s_LOGIN>{ SIMPLE_PKT::c2s_LOGIN } {}
-        static const bool Handle(const S_ptr<PacketSession>& pSession_, const c2s_LOGIN& pkt_);
+        char	name[NAME_SIZE];
+        CS_LOGIN_PACKET() :SimplePacket<CS_LOGIN_PACKET>{ SIMPLE_PKT::CS_LOGIN }{}
+        static const bool Handle(const S_ptr<PacketSession>& pSession_, const CS_LOGIN_PACKET& pkt_);
     };
 
-    struct s2c_LOGIN
-        :public SimplePacket<s2c_LOGIN>
+    struct CS_MOVE_PACKET
+        :public SimplePacket<CS_MOVE_PACKET>
     {
-        s2c_LOGIN() :SimplePacket<s2c_LOGIN>{ SIMPLE_PKT::s2c_LOGIN } {}
-
-        int x, y;
-        uint64_t sessionID;
-        Vec2 vInitPos;
-        static const bool Handle(const S_ptr<PacketSession>& pSession_, const s2c_LOGIN& pkt_);
+        char	direction;  // 0 : UP, 1 : DOWN, 2 : LEFT, 3 : RIGHT
+        unsigned	move_time;
+        CS_MOVE_PACKET():SimplePacket<CS_MOVE_PACKET>{SIMPLE_PKT::CS_MOVE}{}
+        static const bool Handle(const S_ptr<PacketSession>& pSession_, const CS_MOVE_PACKET& pkt_);
     };
 
-    struct c2s_NEW_PLAYER
-        :public SimplePacket<c2s_NEW_PLAYER>
+    struct SC_LOGIN_INFO_PACKET
+        :public SimplePacket<SC_LOGIN_INFO_PACKET>
     {
-        c2s_NEW_PLAYER() :SimplePacket<c2s_NEW_PLAYER>{ SIMPLE_PKT::c2s_NEW_PLAYER } {}
-        static const bool Handle(const S_ptr<PacketSession>& pSession_, const c2s_NEW_PLAYER& pkt_);
+        int	id;
+        short	x, y;
+        SC_LOGIN_INFO_PACKET():SimplePacket<SC_LOGIN_INFO_PACKET>{SIMPLE_PKT::SC_LOGIN_INFO}{}
+        static const bool Handle(const S_ptr<PacketSession>& pSession_, const SC_LOGIN_INFO_PACKET& pkt_);
     };
 
-    struct s2c_NEW_PLAYER
-        :public SimplePacket<s2c_NEW_PLAYER>
+    struct SC_ADD_PLAYER_PACKET
+        :public SimplePacket< SC_ADD_PLAYER_PACKET>
     {
-        int x, y;
-        uint64_t otherID;
-        Vec2 vOtherPos;
-        s2c_NEW_PLAYER() :SimplePacket<s2c_NEW_PLAYER>{ SIMPLE_PKT::s2c_NEW_PLAYER } {}
-        static const bool Handle(const S_ptr<PacketSession>& pSession_, const s2c_NEW_PLAYER& pkt_);
+        int	id;
+        short	x, y;
+        char	name[NAME_SIZE];
+        SC_ADD_PLAYER_PACKET():SimplePacket<SC_ADD_PLAYER_PACKET>{SIMPLE_PKT::SC_ADD_PLAYER}{}
+        static const bool Handle(const S_ptr<PacketSession>& pSession_, const SC_ADD_PLAYER_PACKET& pkt_);
     };
 
-    struct c2s_KEY
-        :public SimplePacket<c2s_KEY>
+    struct SC_REMOVE_PLAYER_PACKET 
+        :public SimplePacket< SC_REMOVE_PLAYER_PACKET >
     {
-        c2s_KEY() :SimplePacket<c2s_KEY>{ SIMPLE_PKT::c2s_KEY } {}
-
-        int VK;
-        uint64_t moveUserID;
-        static const bool Handle(const S_ptr<PacketSession>& pSession_, const c2s_KEY& pkt_);
+        int	id;
+        SC_REMOVE_PLAYER_PACKET():SimplePacket<SC_REMOVE_PLAYER_PACKET>{SIMPLE_PKT::SC_REMOVE_PLAYER}{}
+        static const bool Handle(const S_ptr<PacketSession>& pSession_, const SC_REMOVE_PLAYER_PACKET& pkt_);
     };
 
-    struct s2c_KEY
-        :public SimplePacket<s2c_KEY>
+    struct SC_MOVE_PLAYER_PACKET 
+        :public SimplePacket< SC_MOVE_PLAYER_PACKET  >
     {
-        s2c_KEY() :SimplePacket<s2c_KEY>{ SIMPLE_PKT::s2c_KEY } {}
-
-        int x, y;
-        Vec2 vPos;
-        uint64_t moveUserID;
-        static const bool Handle(const S_ptr<PacketSession>& pSession_, const s2c_KEY& pkt_);
-    };
-
-    struct c2s_LEAVE
-        :public SimplePacket<c2s_LEAVE>
-    {
-        c2s_LEAVE() :SimplePacket<c2s_LEAVE>{ SIMPLE_PKT::c2s_LEAVE } {}
-
-        uint64_t leaveUserID;
-        static const bool Handle(const S_ptr<PacketSession>& pSession_, const c2s_LEAVE& pkt_);
-    };
-
-    struct s2c_LEAVE
-        :public SimplePacket<s2c_LEAVE>
-    {
-        s2c_LEAVE() :SimplePacket<s2c_LEAVE>{ SIMPLE_PKT::s2c_LEAVE } {}
-
-        uint64_t leaveUserID;
-        static const bool Handle(const S_ptr<PacketSession>& pSession_, const s2c_LEAVE& pkt_);
+        int	id;
+        short	x, y;
+        unsigned int move_time;
+        SC_MOVE_PLAYER_PACKET():SimplePacket<SC_MOVE_PLAYER_PACKET>{SIMPLE_PKT::SC_MOVE_PLAYER}{}
+        static const bool Handle(const S_ptr<PacketSession>& pSession_, const SC_MOVE_PLAYER_PACKET& pkt_);
     };
 
 #pragma pack (pop)

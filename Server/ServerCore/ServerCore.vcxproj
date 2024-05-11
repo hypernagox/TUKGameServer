@@ -182,6 +182,7 @@
     <ClInclude Include="Allocator.h" />
     <ClInclude Include="AtomicMemoryPool.hpp" />
     <ClInclude Include="AtomicNonTemplate.h" />
+    <ClInclude Include="Broadcaster.h" />
     <ClInclude Include="ConcurrentHash.hpp" />
     <ClInclude Include="concurrentqueue.h" />
     <ClInclude Include="Container.h" />
@@ -190,7 +191,6 @@
     <ClInclude Include="CorePch.h" />
     <ClInclude Include="CoreTLS.h" />
     <ClInclude Include="CoRoutine.hpp" />
-    <ClInclude Include="DeadLockProfiler.h" />
     <ClInclude Include="enable_shared_cache_this.hpp" />
     <ClInclude Include="IDGenerator.hpp" />
     <ClInclude Include="ID_Ptr.hpp" />
@@ -202,7 +202,6 @@
     <ClInclude Include="IocpEvent.h" />
     <ClInclude Include="IocpObject.h" />
     <ClInclude Include="Listener.h" />
-    <ClInclude Include="Lock.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="MemoryMgr.h" />
     <ClInclude Include="MemoryHeader.hpp" />
@@ -220,6 +219,7 @@
     <ClInclude Include="Session.h" />
     <ClInclude Include="SessionManageable.h" />
     <ClInclude Include="Singleton.hpp" />
+    <ClInclude Include="SlilMemPool.h" />
     <ClInclude Include="SocketUtils.h" />
     <ClInclude Include="SpinLock.hpp" />
     <ClInclude Include="SRWLock.hpp" />
@@ -227,22 +227,22 @@
     <ClInclude Include="TaskQueueable.h" />
     <ClInclude Include="TaskTimerMgr.h" />
     <ClInclude Include="ThreadMgr.h" />
-    <ClInclude Include="TypeCast.h" />
+    <ClInclude Include="Timer.h" />
+    <ClInclude Include="TimerObject.h" />
     <ClInclude Include="Types.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Allocator.cpp" />
     <ClCompile Include="AtomicNonTemplate.cpp" />
+    <ClCompile Include="Broadcaster.cpp" />
     <ClCompile Include="CoreGlobal.cpp" />
     <ClCompile Include="CorePch.cpp" />
     <ClCompile Include="CoreTLS.cpp" />
-    <ClCompile Include="DeadLockProfiler.cpp" />
     <ClCompile Include="func.cpp" />
     <ClCompile Include="IocpCore.cpp" />
     <ClCompile Include="IocpEvent.cpp" />
     <ClCompile Include="IocpObject.cpp" />
     <ClCompile Include="Listener.cpp" />
-    <ClCompile Include="Lock.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="MemoryMgr.cpp" />
     <ClCompile Include="NetAddress.cpp" />
@@ -264,16 +264,14 @@
     <ClCompile Include="Service.cpp" />
     <ClCompile Include="Session.cpp" />
     <ClCompile Include="SessionManageable.cpp" />
+    <ClCompile Include="SlilMemPool.cpp" />
     <ClCompile Include="SocketUtils.cpp" />
     <ClCompile Include="Task.cpp" />
     <ClCompile Include="TaskQueueable.cpp" />
     <ClCompile Include="TaskTimerMgr.cpp" />
     <ClCompile Include="ThreadMgr.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="GenPackets\Enum.proto" />
-    <None Include="GenPackets\Protocol.proto" />
-    <None Include="GenPackets\Struct.proto" />
+    <ClCompile Include="Timer.cpp" />
+    <ClCompile Include="TimerObject.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

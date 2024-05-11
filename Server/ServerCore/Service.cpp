@@ -5,6 +5,7 @@
 #include "Listener.h"
 #include "SendBufferMgr.h"
 #include "SessionManageable.h"
+#include "../Chess.h"
 
 namespace ServerCore
 {
@@ -14,11 +15,18 @@ namespace ServerCore
 		, m_netAddr{ addr_ }
 		, m_sessionFactory{ std::move(factory_) }
 		, m_maxSessionCount{ maxSessionCount_ }
+		, m_vecSession(maxSessionCount_)
 	{
-		m_listSession.emplace_back(nullptr);
-		m_beginSentienl = std::prev(m_listSession.end());
-		m_listSession.emplace_back(nullptr);
-		m_endSentienl = std::prev(m_listSession.end());
+		if constexpr (VIEW_RANGE == 0 && SECTOR_SIZE == 400)
+			m_maxSessionCount = 1600;
+		//m_listSession.emplace_back(nullptr);
+		//m_beginSentienl = std::prev(m_listSession.end());
+		//m_listSession.emplace_back(nullptr);
+		//m_endSentienl = std::prev(m_listSession.end());
+		for (int i = 0; i < m_maxSessionCount; ++i)
+		{
+			m_idxQueue.push(i);
+		}
 	}
 
 	Service::~Service()
@@ -30,68 +38,96 @@ namespace ServerCore
 	{
 		// TODO: ¾î¶»°Ô ¼Ò¸ê½ÃÅ³Áö °í¹Î
 		IterateSession([](const S_ptr<Session>& p)noexcept {p->Disconnect(L"Bye"); });
-		reset_cache_shared();
+		//reset_cache_shared();
 	}
 
 	S_ptr<Session> Service::CreateSession()noexcept
 	{
 		auto pSession = m_sessionFactory();
 		pSession->SetService(this);
-		pSession->register_cache_shared_core(pSession);
+		//pSession->register_cache_shared_core(pSession);
+#ifdef OVERLAPPED_IO
 		return pSession;
-		//return m_pIocpCore->RegisterIOCP(pSession.get()) ? std::move(pSession) : nullptr;
+#endif
+		return m_pIocpCore->RegisterIOCP(pSession.get(), pSession->GetSessionID()) ? std::move(pSession) : nullptr;
 	}
 
 	const bool Service::AddSession(S_ptr<Session>&& pSession_)noexcept
 	{
-		if (m_maxSessionCount <= m_sessionCount.fetch_add(1, std::memory_order_acq_rel))
-		{
-			m_sessionCount.fetch_sub(1, std::memory_order_acq_rel);
+		int32 idx;
+		if (!m_idxQueue.try_pop(idx))
 			return false;
-		}
-		const bool threadNum = Mgr(ThreadMgr)->GetCurThreadID() & 1;
-		const uint64 sessionID = pSession_->GetSessionID();
-		decltype(m_listSession.begin()) iter;
-		{
-			std::scoped_lock lock{ m_InsertLock[threadNum],m_eraseLock };
-			if (threadNum)
-			{
-				m_listSession.emplace_back(std::move(pSession_));
-				iter = std::prev(m_listSession.end());
-			}
-			else
-			{
-				m_listSession.emplace_front(std::move(pSession_));
-				iter = m_listSession.begin();
-			}
-		}
-		m_mapFindSession.emplace_no_return(sessionID, std::move(iter));
+		pSession_->m_serviceIdx.store(idx, std::memory_order_relaxed);
+		m_vecSession[idx] = std::move(pSession_);
+		return true;
+
+		//if (m_maxSessionCount <= m_sessionCount.fetch_add(1, std::memory_order_relaxed))
+		//{
+		//	m_sessionCount.fetch_sub(1, std::memory_order_relaxed);
+		//	return false;
+		//}
+		//const bool threadNum = Mgr(ThreadMgr)->GetCurThreadID() & 1;
+		//const uint64 sessionID = pSession_->GetSessionID();
+		//decltype(m_listSession.begin()) iter;
+		//{
+		//	std::scoped_lock lock{ m_InsertLock[threadNum],m_eraseLock };
+		//	if (threadNum)
+		//	{
+		//		m_listSession.emplace_back(std::move(pSession_));
+		//		iter = std::prev(m_listSession.end());
+		//	}
+		//	else
+		//	{
+		//		m_listSession.emplace_front(std::move(pSession_));
+		//		iter = m_listSession.begin();
+		//	}
+		//}
+		//m_mapFindSession.emplace_no_return(sessionID, std::move(iter));
 		return true;
 	}
 
-	void Service::ReleaseSession(const S_ptr<Session>& pSession_)noexcept
+	//void Service::ReleaseSession(const S_ptr<Session>& pSession_)noexcept
+	//{
+	//	const int32 idx = pSession_->m_serviceIdx.exchange(-1, std::memory_order_relaxed);
+	//	if (-1 == idx)
+	//		return;
+	//	m_vecSession[idx].reset();
+	//	m_idxQueue.push(idx);
+	//	//const auto iter = m_mapFindSession.extract(pSession_->GetSessionID());
+	//	//{
+	//	//	std::scoped_lock lock{ m_InsertLock[0],m_InsertLock[1],m_eraseLock };
+	//	//	m_listSession.erase(iter->second);
+	//	//}
+	//	//m_sessionCount.fetch_sub(1, std::memory_order_acq_rel);
+	//}
+
+	void Service::ReleaseSession(Session* const pSession_) noexcept
 	{
-		const auto iter = m_mapFindSession.extract(pSession_->GetSessionID());
-		{
-			std::scoped_lock lock{ m_InsertLock[0],m_InsertLock[1],m_eraseLock };
-			m_listSession.erase(iter->second);
-		}
-		m_sessionCount.fetch_sub(1, std::memory_order_acq_rel);
+		const int32 idx = pSession_->m_serviceIdx.exchange(-1, std::memory_order_relaxed);
+		if (-1 == idx)
+			return;
+		m_vecSession[idx].reset();
+		m_idxQueue.push(idx);
 	}
 
 	void Service::IterateSession(std::function<void(const S_ptr<Session>&)> fpIterate_)noexcept
 	{
+		//{
+		//	std::scoped_lock lock{ m_InsertLock[0],m_InsertLock[1],m_eraseLock };
+		//	m_listSession.splice(m_endSentienl, m_listSession, std::next(m_endSentienl), m_listSession.end());
+		//	m_listSession.splice(std::next(m_beginSentienl), m_listSession, m_listSession.begin(), m_beginSentienl);
+		//}
+		//{
+		//	std::lock_guard<SpinLock> lock{ m_eraseLock };
+		//	for (auto it = std::next(m_beginSentienl); it != m_endSentienl; ++it)
+		//	{
+		//		fpIterate_((*it));
+		//	}
+		//}
+		for (const auto& pSession : m_vecSession)
 		{
-			std::scoped_lock lock{ m_InsertLock[0],m_InsertLock[1],m_eraseLock };
-			m_listSession.splice(m_endSentienl, m_listSession, std::next(m_endSentienl), m_listSession.end());
-			m_listSession.splice(std::next(m_beginSentienl), m_listSession, m_listSession.begin(), m_beginSentienl);
-		}
-		{
-			std::lock_guard<SpinLock> lock{ m_eraseLock };
-			for (auto it = std::next(m_beginSentienl); it != m_endSentienl; ++it)
-			{
-				fpIterate_((*it));
-			}
+			if (pSession)
+				fpIterate_(pSession);
 		}
 	}
 

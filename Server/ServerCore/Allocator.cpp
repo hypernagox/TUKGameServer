@@ -8,7 +8,7 @@
 
 namespace ServerCore
 {
-	void* StompAllocator::Alloc(const size_t size)
+	void* const StompAllocator::Alloc(const size_t size)noexcept
 	{
 		const int64 pageCount = (size + PAGE_SIZE - 1) / PAGE_SIZE;
 		const int64 dataOffset = pageCount * PAGE_SIZE - size;
@@ -17,7 +17,7 @@ namespace ServerCore
 
 	}
 
-	void StompAllocator::Release(void* ptr)
+	void StompAllocator::Release(void* const ptr)noexcept
 	{
 		const int64 address = reinterpret_cast<int64>(ptr);
 		const int64 baseAddress = address - (address % PAGE_SIZE);

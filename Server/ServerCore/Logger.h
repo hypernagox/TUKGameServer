@@ -14,7 +14,7 @@ namespace ServerCore
 		{
 			friend class Logger;
 		private:
-			Log(std::wstring&& msg)noexcept :logMsg{ std::move(msg) }
+			Log(std::wstring_view msg)noexcept :logMsg{ std::move(msg) }
 			{
 			//	Mgr(Logger)->EnqueueLogMsg(std::format(L"{} Start", logMsg));
 			}
@@ -29,7 +29,7 @@ namespace ServerCore
 			std::wstring logMsg;
 			std::chrono::high_resolution_clock::time_point startTime = std::chrono::high_resolution_clock::now();
 		};
-		void EnqueueLogMsg(std::wstring&& msg)noexcept
+		void EnqueueLogMsg(std::wstring_view msg)noexcept
 		{
 			//m_msgQueue.emplace(std::move(msg));
 			//m_msgCv.notify_one();

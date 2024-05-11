@@ -3,12 +3,11 @@
 
 namespace ServerCore
 {
-
 #pragma pack (push, 1)
 	struct PacketHeader
 	{
-		uint16 pkt_size;
-		uint16 pkt_id;
+		unsigned char pkt_size;
+		char pkt_id;
 	};
 #pragma pack (pop)
 

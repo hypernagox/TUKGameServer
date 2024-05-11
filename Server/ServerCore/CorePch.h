@@ -39,9 +39,7 @@
 #pragma comment(lib, "ws2_32.lib")
 
 #include "IDGenerator.hpp"
-#include "Lock.h"
 #include "ObjectPool.hpp"
-#include "TypeCast.h"
 #include "MemoryMgr.h"
 #include "MemoryHeader.hpp"
 #include "func.h"
@@ -60,3 +58,4 @@
 #include "LinkedHashMap.hpp"
 #include "Interpolator.hpp"
 #include "ID_Ptr.hpp"
+#include "Timer.h"

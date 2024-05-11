@@ -21,7 +21,6 @@ namespace ServerCore
 	using SessionFactory = std::function<S_ptr<Session>(void)>;
 
 	class Service
-		:public enable_shared_cache_this<Service>
 	{
 	public:
 		Service(const std::shared_ptr<IocpCore>& pIocp_, SERVICE_TYPE eServiceType_, NetAddress addr_, SessionFactory factory_, c_int32 maxSessionCount_ = 1);
@@ -34,7 +33,8 @@ namespace ServerCore
 
 		S_ptr<Session> CreateSession()noexcept;
 		const bool AddSession(S_ptr<Session>&& pSession_)noexcept;
-		void ReleaseSession(const S_ptr<Session>& pSession_)noexcept;
+		//void ReleaseSession(const S_ptr<Session>& pSession_)noexcept;
+		void ReleaseSession(Session* const pSession_)noexcept;
 		int32 GetCurrentSessionCount()const noexcept { return m_sessionCount; }
 		int32 GetMaxSessionCount()const noexcept { return m_maxSessionCount; }
 		SERVICE_TYPE GetServiceType()const noexcept{ return m_eServiceType; }
@@ -50,15 +50,17 @@ namespace ServerCore
 		const SessionFactory m_sessionFactory;
 
 		std::atomic<int32> m_sessionCount = 0;
-		const int32 m_maxSessionCount;
+		int32 m_maxSessionCount;
 
-		List<S_ptr<Session>> m_listSession;
-		ConcurrentHashMap<uint64, decltype(m_listSession.begin())> m_mapFindSession;
-
-		decltype(m_listSession.begin()) m_beginSentienl;
-		decltype(m_listSession.begin()) m_endSentienl;
-		SpinLock m_InsertLock[2];
-		SpinLock m_eraseLock;
+		Concurrency::concurrent_priority_queue<int32, std::greater<int32>, StlAllocator<int32>> m_idxQueue;
+		Vector<S_ptr<Session>> m_vecSession;
+		//List<S_ptr<Session>> m_listSession;
+		//ConcurrentHashMap<uint64, decltype(m_listSession.begin())> m_mapFindSession;
+		//
+		//decltype(m_listSession.begin()) m_beginSentienl;
+		//decltype(m_listSession.begin()) m_endSentienl;
+		//SpinLock m_InsertLock[2];
+		//SpinLock m_eraseLock;
 	};
 
 

@@ -73,14 +73,8 @@
     <Filter Include="Manager\ThreadMgr">
       <UniqueIdentifier>{cb6dd78f-4f7e-4dbd-aa14-af9d28dd3145}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Manager\DeadLockProfiler">
-      <UniqueIdentifier>{b37477d9-fe30-4340-b44b-2b9a1311c9c7}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Locks">
       <UniqueIdentifier>{7f43475c-75fa-4c90-9191-38576b1eb7a8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Locks\Lock">
-      <UniqueIdentifier>{7c907f03-48a6-4984-8530-f55c89f080be}</UniqueIdentifier>
     </Filter>
     <Filter Include="Memory\AtomicNonTemplate">
       <UniqueIdentifier>{35e601fe-34f4-44bd-b758-f4d74e161692}</UniqueIdentifier>
@@ -94,11 +88,20 @@
     <Filter Include="Manager\Logger">
       <UniqueIdentifier>{da330e5c-802c-4df3-ba47-a9b843fac149}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Protocols">
-      <UniqueIdentifier>{968a7e6a-0931-4bf1-b21e-e8746e5bb9ec}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Network\IDGenerator">
       <UniqueIdentifier>{7ae3946b-07a7-459a-814c-ae765f342e0c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils\Timer">
+      <UniqueIdentifier>{431f723f-0d4f-4ad2-8516-f0f2772957c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Network\IocpCore\TimerObject">
+      <UniqueIdentifier>{5c55d9c2-4448-40be-b24d-52f0afb69500}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Broadcaster">
+      <UniqueIdentifier>{6f615ab3-ebec-4b56-83d6-9cb3f4811780}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Manager\MemoryMgr\SlimMemPool">
+      <UniqueIdentifier>{b7bd4b27-9cbc-4664-ad4f-a9dd94b731c9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -207,12 +210,6 @@
     <ClInclude Include="ThreadMgr.h">
       <Filter>Manager\ThreadMgr</Filter>
     </ClInclude>
-    <ClInclude Include="DeadLockProfiler.h">
-      <Filter>Manager\DeadLockProfiler</Filter>
-    </ClInclude>
-    <ClInclude Include="Lock.h">
-      <Filter>Locks\Lock</Filter>
-    </ClInclude>
     <ClInclude Include="SRWLock.hpp">
       <Filter>Locks</Filter>
     </ClInclude>
@@ -221,9 +218,6 @@
     </ClInclude>
     <ClInclude Include="AtomicMemoryPool.hpp">
       <Filter>Memory</Filter>
-    </ClInclude>
-    <ClInclude Include="TypeCast.h">
-      <Filter>Utils\predefine</Filter>
     </ClInclude>
     <ClInclude Include="Logger.h">
       <Filter>Manager\Logger</Filter>
@@ -251,6 +245,18 @@
     </ClInclude>
     <ClInclude Include="PacketArray.hpp">
       <Filter>Utils\struct</Filter>
+    </ClInclude>
+    <ClInclude Include="Timer.h">
+      <Filter>Utils\Timer</Filter>
+    </ClInclude>
+    <ClInclude Include="TimerObject.h">
+      <Filter>Network\IocpCore\TimerObject</Filter>
+    </ClInclude>
+    <ClInclude Include="Broadcaster.h">
+      <Filter>Broadcaster</Filter>
+    </ClInclude>
+    <ClInclude Include="SlilMemPool.h">
+      <Filter>Manager\MemoryMgr\SlimMemPool</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -332,25 +338,20 @@
     <ClCompile Include="ThreadMgr.cpp">
       <Filter>Manager\ThreadMgr</Filter>
     </ClCompile>
-    <ClCompile Include="DeadLockProfiler.cpp">
-      <Filter>Manager\DeadLockProfiler</Filter>
-    </ClCompile>
-    <ClCompile Include="Lock.cpp">
-      <Filter>Locks\Lock</Filter>
-    </ClCompile>
     <ClCompile Include="Logger.cpp">
       <Filter>Manager\Logger</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="GenPackets\Enum.proto">
-      <Filter>Protocols</Filter>
-    </None>
-    <None Include="GenPackets\Protocol.proto">
-      <Filter>Protocols</Filter>
-    </None>
-    <None Include="GenPackets\Struct.proto">
-      <Filter>Protocols</Filter>
-    </None>
+    <ClCompile Include="Timer.cpp">
+      <Filter>Utils\Timer</Filter>
+    </ClCompile>
+    <ClCompile Include="TimerObject.cpp">
+      <Filter>Network\IocpCore\TimerObject</Filter>
+    </ClCompile>
+    <ClCompile Include="Broadcaster.cpp">
+      <Filter>Broadcaster</Filter>
+    </ClCompile>
+    <ClCompile Include="SlilMemPool.cpp">
+      <Filter>Manager\MemoryMgr\SlimMemPool</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

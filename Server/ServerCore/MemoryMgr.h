@@ -3,6 +3,7 @@
 #include "AtomicMemoryPool.hpp"
 #include "AtomicNonTemplate.h"
 #include "Container.h"
+#include "../pch.h"
 
 class AtomicNonTemplate;
 
@@ -27,9 +28,9 @@ namespace ServerCore
 		void* const	Allocate(const size_t size)const noexcept;
 		void Release(void* const ptr)const noexcept;
 	private:
-		std::vector<AtomicNonTemplate*> m_pools;
-		AtomicNonTemplate* m_poolTable[MAX_ALLOC_SIZE + 1];
-		AtomicMemoryPool<AtomicNonTemplate> m_poolAllocator{ 64 };
+		std::vector<AtomicNonTemplate*> m_pools[ServerCore::NUM_OF_THREADS];
+		AtomicNonTemplate* m_poolTable[ServerCore::NUM_OF_THREADS][MAX_ALLOC_SIZE + 1];
+		AtomicMemoryPool<AtomicNonTemplate> m_poolAllocator{ 64 * ServerCore::NUM_OF_THREADS };
 	};
 
 	template<typename Type, typename... Args>

@@ -50,4 +50,4 @@ namespace ServerCore
 		BYTE m_buffer[BUFFER_SIZE * BUFFER_COUNT];
 	};
 }
-
+	

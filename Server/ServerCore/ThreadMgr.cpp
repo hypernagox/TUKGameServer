@@ -12,20 +12,23 @@
 	ThreadMgr
 -------------------*/
 
+
 namespace ServerCore
 {
 	extern thread_local uint64				LEndTickCount;
 	extern thread_local class TaskQueueable* LCurTaskQueue;
 
-	thread_local moodycamel::ProducerToken* LPro_token;
-	thread_local moodycamel::ConsumerToken* LCon_token;
+	//thread_local moodycamel::ProducerToken* LPro_token;
+	//thread_local moodycamel::ConsumerToken* LCon_token;
 	thread_local moodycamel::ProducerToken* LPro_tokenGlobalTask;
 	thread_local moodycamel::ConsumerToken* LCon_tokenGlobalTask;
 
 	ThreadMgr::ThreadMgr()
+		:m_iocpHandle{ Mgr(CoreGlobal)->GetIocpCore()->GetIocpHandle() }
 	{
 		// Main Thread
 		InitTLS();
+		LThreadId = 1;
 	}
 
 	ThreadMgr::~ThreadMgr()
@@ -35,11 +38,11 @@ namespace ServerCore
 		{
 			Join();
 		}
-		Task* task;
-		while (m_globalTask.try_dequeue(*LCon_tokenGlobalTask, task))PoolDelete<Task>(task);
+		Task task;
+		while (m_globalTask.try_dequeue(*LCon_tokenGlobalTask, task)) { std::destroy_at<Task>(&task); }
 
-		xdelete<moodycamel::ProducerToken>(LPro_token);
-		xdelete<moodycamel::ConsumerToken>(LCon_token);
+		//xdelete<moodycamel::ProducerToken>(LPro_token);
+		//xdelete<moodycamel::ConsumerToken>(LCon_token);
 
 		xdelete<moodycamel::ProducerToken>(LPro_tokenGlobalTask);
 		xdelete<moodycamel::ConsumerToken>(LCon_tokenGlobalTask);
@@ -55,30 +58,64 @@ namespace ServerCore
 					const bool& bStopRequest = m_bStopRequest;
 					const auto pIocpCore = pService->GetIocpCore().get();
 					const auto taskTimer = Mgr(TaskTimerMgr);
-					const auto threadMgr = Mgr(ThreadMgr);
+					//const auto threadMgr = Mgr(ThreadMgr);
 					for (;;)
 					{
 						if (bStopRequest) [[unlikely]]
 							break;
 
-						LEndTickCount = ::GetTickCount64() + WORKER_TICK;
+						//LEndTickCount = ::GetTickCount64() + WORKER_TICK;
 
-						pIocpCore->Dispatch(0);
-
+						if (false == pIocpCore->Dispatch(INFINITE))
+						{
+							this->TryGlobalQueueTask();
+						}
+#ifdef OVERLAPPED_IO
 						::SleepEx(0, TRUE);
-
-						taskTimer->DistributeTask();
-
-						threadMgr->TryGlobalQueueTask();
+#endif
+						//taskTimer->DistributeTask();
 					}
 					DestroyTLS();
 				});
 		}
+
+		while (g_threadID.load(std::memory_order_seq_cst) <= NUM_OF_THREADS);
+		std::atomic_thread_fence(std::memory_order_seq_cst);
+		
+		m_timerThread = std::jthread{ [this]()noexcept
+			{
+				InitTLS();
+				const bool& bStopRequest = m_bStopRequest;
+				const auto taskTimer = Mgr(TaskTimerMgr);
+				for (;;)
+				{
+					if (bStopRequest) [[unlikely]]
+						break;
+		
+					taskTimer->DistributeTask();
+		
+					std::this_thread::yield();
+				}
+				DestroyTLS();
+			} };
+		std::string strFin(32, 0);
 		if (SERVICE_TYPE::SERVER == pService->GetServiceType())
 		{
 			static std::atomic_bool registerFinish = false;
 			while (!m_bStopRequest)
 			{
+				std::cin >> strFin;
+
+				if ("EXIT" == strFin)
+				{
+					if (false == registerFinish.exchange(true))
+					{
+						pService->CloseService();
+						Mgr(Logger)->m_bStopRequest = true;
+						std::this_thread::sleep_for(std::chrono::seconds(5));
+						Join();
+					}
+				}
 				std::this_thread::sleep_for(std::chrono::seconds(5));
 				if (::GetAsyncKeyState(VK_END))
 				{
@@ -100,20 +137,24 @@ namespace ServerCore
 			return;
 		m_bStopRequest = true;
 		std::atomic_thread_fence(std::memory_order_seq_cst);
+		for (int i = 0; i < NUM_OF_THREADS; ++i)
+			PostQueuedCompletionStatus(m_iocpHandle, 0, 0, 0);
 		for (auto& t : m_threads)
 		{
+			PostQueuedCompletionStatus(m_iocpHandle, 0, 0, 0);
 			t.join();
 		}
+		m_timerThread.join();
 	}
 
 	void ThreadMgr::InitTLS()
 	{
 		LThreadId = g_threadID.fetch_add(1);
 
-		LPro_token = xnew<moodycamel::ProducerToken>(m_globalTaskQueue);
+		//LPro_token = xnew<moodycamel::ProducerToken>(m_globalTaskQueue);
 		LPro_tokenGlobalTask = xnew <moodycamel::ProducerToken>(m_globalTask);
 
-		LCon_token = xnew <moodycamel::ConsumerToken>(m_globalTaskQueue);
+		//LCon_token = xnew <moodycamel::ConsumerToken>(m_globalTaskQueue);
 		LCon_tokenGlobalTask = xnew <moodycamel::ConsumerToken>(m_globalTask);
 
 		LSendBufferChunk = Mgr(SendBufferMgr)->Pop();
@@ -125,17 +166,18 @@ namespace ServerCore
 
 	void ThreadMgr::TryGlobalQueueTask()noexcept
 	{
-		while (::GetTickCount64() < LEndTickCount)
-		{
-			S_ptr<TaskQueueable> qPtr;
-			if (!m_globalTaskQueue.try_dequeue(*LCon_token, qPtr))
-				break;
-			qPtr->Execute();
-		}
-		Task* task;
+		//while (::GetTickCount64() < LEndTickCount)
+		//{
+		//	S_ptr<TaskQueueable> qPtr;
+		//	if (!m_globalTaskQueue.try_dequeue(*LCon_token, qPtr))
+		//		break;
+		//	qPtr->Execute();
+		//}
+		Task task;
 		while (m_globalTask.try_dequeue(*LCon_tokenGlobalTask, task)) {
-			task->ExecuteTask();
-			PoolDelete<Task>(task);
+			task.ExecuteTask();
+			std::destroy_at<Task>(&task);
+			//PoolDelete<Task>(task);
 		}
 	}
 }

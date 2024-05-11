@@ -21,7 +21,12 @@ namespace ServerCore
 	public:
 		void Init()noexcept { ::memset(static_cast<OVERLAPPED* const>(this), NULL, sizeof(OVERLAPPED)); }
 		constexpr const EVENT_TYPE GetEventType()const noexcept { return m_eEVENT_TYPE; }
-		void SetIocpObject(S_ptr<IocpObject>&& pIocp_)noexcept { m_pIocpObject.swap(pIocp_); }
+		void SetIocpObject(S_ptr<IocpObject>&& pIocp_)noexcept {
+			std::construct_at(&m_pIocpObject, std::move(pIocp_));
+		}
+		void SetIocpObject(S_ptr<class PacketSession>&& pSession_)noexcept {
+			std::construct_at(&m_pIocpObject, std::move(pSession_), reinterpret_cast<IocpObject* const>(pSession_.get()));
+		}
 		const S_ptr<IocpObject>& GetIocpObject()const noexcept { return m_pIocpObject; }
 		void ReleaseIocpObject()noexcept { m_pIocpObject.reset(); }
 		[[nodiscard]] constexpr __forceinline S_ptr<IocpObject>&& PassIocpObject()noexcept { return std::move(m_pIocpObject); }
@@ -110,6 +115,6 @@ namespace ServerCore
 				m_registerSendEvent.SetIocpObject(std::reinterpret_pointer_cast<IocpObject>(pSession));
 		}
 		IocpEvent m_registerSendEvent{ EVENT_TYPE::REGISTER_SEND };
-		Vector<S_ptr<SendBuffer>> sendBuffer;
+		//Vector<S_ptr<SendBuffer>> sendBuffer;
 	};
 }

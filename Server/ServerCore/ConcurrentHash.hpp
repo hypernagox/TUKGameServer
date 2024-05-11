@@ -18,7 +18,6 @@ namespace ServerCore
 		};
 	private:
 		Node head;
-		//mutable SRWLock m_sharedMutex;
 		mutable SRWLock m_sharedMutexForErase;
 		mutable std::mutex m_eraseLock;
 	private:
@@ -43,132 +42,117 @@ namespace ServerCore
 		template<typename ...Args>
 		void emplace_front_no_return(const Key& key_, Args&&... args)noexcept
 		{
-			//Node* const newNode = ::xnew<Node>(std::make_pair(key_, std::forward<Args>(args)...));
-			//{
-			//	std::lock_guard<SRWLock> s_lock{ m_sharedMutex };
-			//	newNode->next = head.next;
-			//	head.next = newNode;
-			//}
 			Node* const newNode = xnew<Node>(std::make_pair(key_, std::forward<Args>(args)...));
-			std::shared_lock<SRWLock> shared_erase{ m_sharedMutexForErase };
+			m_sharedMutexForErase.lock_shared();
 			do {
 				newNode->next = head.next;
 			} while (InterlockedCompareExchangePointer(
 				reinterpret_cast<PVOID volatile*>(&head.next),
 				newNode,
 				newNode->next) != newNode->next);
+			m_sharedMutexForErase.unlock_shared();
 		}
 		template<typename ...Args>
 		std::optional<Value> emplace_front(const Key& key_, Args&&... args)noexcept
 		{
-			//Node* const newNode = ::xnew<Node>(std::make_pair(key_, std::forward<Args>(args)...));
-			//{
-			//	std::lock_guard<SRWLock> s_lock{ m_sharedMutex };
-			//	newNode->next = head.next;
-			//	head.next = newNode;
-			//}
 			Node* const newNode = xnew<Node>(std::make_pair(key_, std::forward<Args>(args)...));
-			std::shared_lock<SRWLock> shared_erase{ m_sharedMutexForErase };
+			m_sharedMutexForErase.lock_shared();
 			do {
 				newNode->next = head.next;
 			} while (InterlockedCompareExchangePointer(
 				reinterpret_cast<PVOID volatile*>(&head.next),
 				newNode,
 				newNode->next) != newNode->next);
+			m_sharedMutexForErase.unlock_shared();
 			return newNode->data.second;
 		}
 		template<typename ...Args>
 		void emplace_unsafe(const Key& key_, Args&&... args)noexcept
 		{
-			Node* const newNode = xnew<Node>(std::make_pair(key_, std::forward<Args>(args)...), head.next);
-			head.next = newNode;
-			std::atomic_thread_fence(std::memory_order_release);
+			head.next = xnew<Node>(std::make_pair(key_, std::forward<Args>(args)...), head.next);
 		}
 		template<typename ...Args>
 		const bool find_and_emplace(const Key& key_, Args&&... args) noexcept
 		{
 			const Node* curNode = &head;
+			m_sharedMutexForErase.lock();
+			curNode = head.next;
+			while (curNode)
 			{
-				std::lock_guard<SRWLock> find_lock{ m_sharedMutexForErase };
-				curNode = head.next;
-				while (curNode)
+				if (key_ == curNode->data.first)
 				{
-					if (key_ == curNode->data.first)
-					{
-						break;
-					}
-					curNode = curNode->next;
+					break;
 				}
-				if (!curNode)
-				{
-					Node* const newNode = xnew<Node>(std::make_pair(key_, std::forward<Args>(args)...), head.next);
-					head.next = newNode;
-				}
+				curNode = curNode->next;
 			}
-			return !curNode;
+			if (!curNode)
+			{
+				head.next = xnew<Node>(std::make_pair(key_, std::forward<Args>(args)...), head.next);
+				m_sharedMutexForErase.unlock();
+				return true;
+			}
+			m_sharedMutexForErase.unlock();
+			return false;
 		}
 		std::optional<Value> find(const Key& key_) noexcept
 		{
 			const Node* curNode = &head;
-			std::optional<Value> targetData = std::nullopt;
+			std::optional<Value> targetData;
+			m_sharedMutexForErase.lock_shared();
+			curNode = head.next;
+			while (curNode)
 			{
-				//std::shared_lock<SRWLock> s_lock{ m_sharedMutex };
-				std::shared_lock<SRWLock> shared_erase{ m_sharedMutexForErase };
-				curNode = head.next;
-				while (curNode)
+				if (key_ == curNode->data.first)
 				{
-					if (key_ == curNode->data.first)
-					{
-						targetData.emplace(curNode->data.second);
-						break;
-					}
-					curNode = curNode->next;
+					targetData.emplace(curNode->data.second);
+					m_sharedMutexForErase.unlock_shared();
+					return targetData;
 				}
+				curNode = curNode->next;
 			}
-			return targetData;
+			m_sharedMutexForErase.unlock_shared();
+			return std::nullopt;
 		}
 		std::optional<Value> find(const Key& key_)const noexcept
 		{
 			const Node* curNode = &head;
-			std::optional<Value> targetData = std::nullopt;
+			std::optional<Value> targetData;
+			m_sharedMutexForErase.lock_shared();
+			curNode = head.next;
+			while (curNode)
 			{
-				//std::shared_lock<SRWLock> s_lock{ m_sharedMutex };
-				std::shared_lock<SRWLock> shared_erase{ m_sharedMutexForErase };
-				curNode = head.next;
-				while (curNode)
+				if (key_ == curNode->data.first)
 				{
-					if (key_ == curNode->data.first)
-					{
-						targetData.emplace(curNode->data.second);
-						break;
-					}
-					curNode = curNode->next;
+					targetData.emplace(curNode->data.second);
+					m_sharedMutexForErase.unlock_shared();
+					return targetData;
 				}
+				curNode = curNode->next;
 			}
-			return targetData;
+			m_sharedMutexForErase.unlock_shared();
+			return std::nullopt;
 		}
 		void erase(const Key& key_)noexcept
 		{
 			Node* prevNode = &head;
 			Node* curNode;
 			bool flag = false;
+			m_eraseLock.lock();
+			curNode = prevNode->next;
+			while (curNode)
 			{
-				std::lock_guard<std::mutex> erase_lock{ m_eraseLock };
-				//std::shared_lock<SRWLock> s_lock{ m_sharedMutex };
-				curNode = prevNode->next;
-				while (curNode)
+				if (key_ == curNode->data.first)
 				{
-					if (key_ == curNode->data.first)
-					{
-						flag = true;
-						std::lock_guard<SRWLock> lock{ m_sharedMutexForErase };
-						prevNode->next = curNode->next;
-						break;
-					}
-					prevNode = curNode;
-					curNode = curNode->next;
+					flag = true;
+					m_sharedMutexForErase.lock();
+					prevNode->next = curNode->next;
+					m_sharedMutexForErase.unlock();
+					break;
 				}
+				prevNode = curNode;
+				curNode = curNode->next;
 			}
+			m_eraseLock.unlock();
 			if (flag)
 			{
 				xdelete<Node>(curNode);
@@ -180,26 +164,25 @@ namespace ServerCore
 			Node* curNode;
 			bool flag = false;
 			std::optional<std::pair<Key, Value>> target = std::nullopt;
+			m_eraseLock.lock();
+			curNode = prevNode->next;
+			while (curNode)
 			{
-				std::lock_guard<std::mutex> erase_lock{ m_eraseLock };
-				//std::shared_lock<SRWLock> s_lock{ m_sharedMutex };
-				curNode = prevNode->next;
-				while (curNode)
+				if (key_ == curNode->data.first)
 				{
-					if (key_ == curNode->data.first)
-					{
-						flag = true;
-						std::lock_guard<SRWLock> lock{ m_sharedMutexForErase };
-						prevNode->next = curNode->next;
-						target.emplace(std::move(curNode->data));
-						break;
-					}
-					prevNode = curNode;
-					curNode = curNode->next;
+					flag = true;
+					m_sharedMutexForErase.lock();
+					prevNode->next = curNode->next;
+					m_sharedMutexForErase.unlock();
+					break;
 				}
+				prevNode = curNode;
+				curNode = curNode->next;
 			}
+			m_eraseLock.unlock();
 			if (flag)
 			{
+				target.emplace(std::move(curNode->data));
 				xdelete<Node>(curNode);
 			}
 			return target;
@@ -214,8 +197,9 @@ namespace ServerCore
 				if (key_ == curNode->data.first)
 				{
 					flag = true;
-					std::lock_guard<SRWLock> lock{ m_sharedMutexForErase };
+					m_sharedMutexForErase.lock();
 					prevNode->next = curNode->next;
+					m_sharedMutexForErase.unlock();
 					break;
 				}
 				prevNode = curNode;
@@ -237,9 +221,9 @@ namespace ServerCore
 				if (key_ == curNode->data.first)
 				{
 					flag = true;
-					std::lock_guard<SRWLock> lock{ m_sharedMutexForErase };
+					m_sharedMutexForErase.lock();
 					prevNode->next = curNode->next;
-					target.emplace(std::move(curNode->data));
+					m_sharedMutexForErase.unlock();
 					break;
 				}
 				prevNode = curNode;
@@ -247,6 +231,7 @@ namespace ServerCore
 			}
 			if (flag)
 			{
+				target.emplace(std::move(curNode->data));
 				xdelete<Node>(curNode);
 			}
 			return target;
@@ -269,7 +254,7 @@ namespace ServerCore
 	{
 	private:
 		Vector<ConcurrentListForMap<const Key, Value>> buckets;
-		std::hash<Key> hasher;
+		const std::hash<Key> hasher;
 	public:
 		ConcurrentHashMap(const std::size_t size_ = DEFAULT_MEM_POOL_SIZE) noexcept :buckets(size_) {}
 
@@ -396,7 +381,6 @@ namespace ServerCore
 		};
 	private:
 		Node head;
-		//mutable SRWLock m_sharedMutex;
 		mutable SRWLock m_sharedMutexForErase;
 		mutable std::mutex m_eraseLock;
 	private:
@@ -421,132 +405,116 @@ namespace ServerCore
 		template<typename ...Args>
 		void emplace_front_no_return(Args&&... args)noexcept
 		{
-			//Node* const newNode = ::xnew<Node>(std::forward<Args>(args)...);
-			//{
-			//	std::lock_guard<SRWLock> s_lock{ m_sharedMutex };
-			//	newNode->next = head.next;
-			//	head.next = newNode;
-			//}
 			Node* const newNode = xnew<Node>(std::forward<Args>(args)...);
-			std::shared_lock<SRWLock> shared_erase{ m_sharedMutexForErase };
+			m_sharedMutexForErase.lock_shared();
 			do {
 				newNode->next = head.next;
 			} while (InterlockedCompareExchangePointer(
 				reinterpret_cast<PVOID volatile*>(&head.next),
 				newNode,
 				newNode->next) != newNode->next);
+			m_sharedMutexForErase.unlock_shared();
 		}
 		template<typename ...Args>
 		std::optional<Value> emplace_front(Args&&... args)noexcept
 		{
-			//Node* const newNode = ::xnew<Node>(std::forward<Args>(args)...);
-			//{
-			//	std::lock_guard<SRWLock> s_lock{ m_sharedMutex };
-			//	newNode->next = head.next;
-			//	head.next = newNode;
-			//}
-			//return newNode->data;
 			Node* const newNode = xnew<Node>(std::forward<Args>(args)...);
-			std::shared_lock<SRWLock> shared_erase{ m_sharedMutexForErase };
+			m_sharedMutexForErase.lock_shared();
 			do {
 				newNode->next = head.next;
 			} while (InterlockedCompareExchangePointer(
 				reinterpret_cast<PVOID volatile*>(&head.next),
 				newNode,
 				newNode->next) != newNode->next);
+			m_sharedMutexForErase.unlock_shared();
 			return newNode->data;
 		}
 		template<typename ...Args>
 		void emplace_unsafe(Args&&... args)noexcept
 		{
-			Node* const newNode = xnew<Node>(head.next, std::forward<Args>(args)...);
-			head.next = newNode;
-			std::atomic_thread_fence(std::memory_order_release);
+			head.next = xnew<Node>(head.next, std::forward<Args>(args)...);
 		}
 		const bool find_and_emplace(Value&& val_) noexcept
 		{
 			const Node* curNode = &head;
+			m_sharedMutexForErase.lock();
+			curNode = head.next;
+			while (curNode)
 			{
-				std::lock_guard<SRWLock> find_lock{ m_sharedMutexForErase };
-				curNode = head.next;
-				while (curNode)
+				if (val_ == curNode->data)
 				{
-					if (val_ == curNode->data)
-					{
-						break;
-					}
-					curNode = curNode->next;
+					break;
 				}
-				if (!curNode)
-				{
-					Node* const newNode = xnew<Node>(head.next, std::move(val_));
-					head.next = newNode;
-				}
+				curNode = curNode->next;
 			}
-			return !curNode;
+			if (!curNode)
+			{
+				head.next = xnew<Node>(head.next, std::move(val_));
+				m_sharedMutexForErase.unlock();
+				return true;
+			}
+			m_sharedMutexForErase.unlock();
+			return false;
 		}
 		std::optional<Value> find(const Value& val_) noexcept
 		{
 			const Node* curNode = &head;
-			std::optional<Value> targetData = std::nullopt;
+			std::optional<Value> targetData;
+			m_sharedMutexForErase.lock_shared();
+			curNode = head.next;
+			while (curNode)
 			{
-				//std::shared_lock<SRWLock> s_lock{ m_sharedMutex };
-				std::shared_lock<SRWLock> shared_erase{ m_sharedMutexForErase };
-				curNode = head.next;
-				while (curNode)
+				if (val_ == curNode->data)
 				{
-					if (val_ == curNode->data)
-					{
-						targetData.emplace(curNode->data);
-						break;
-					}
-					curNode = curNode->next;
+					targetData.emplace(curNode->data);
+					m_sharedMutexForErase.unlock_shared();
+					return targetData;
 				}
+				curNode = curNode->next;
 			}
-			return targetData;
+			m_sharedMutexForErase.unlock_shared();
+			return std::nullopt;
 		}
 		std::optional<Value> find(const Value& val_)const noexcept
 		{
 			const Node* curNode = &head;
-			std::optional<Value> targetData = std::nullopt;
+			std::optional<Value> targetData;
+			m_sharedMutexForErase.lock_shared();
+			curNode = head.next;
+			while (curNode)
 			{
-				//std::shared_lock<SRWLock> s_lock{ m_sharedMutex };
-				std::shared_lock<SRWLock> shared_erase{ m_sharedMutexForErase };
-				curNode = head.next;
-				while (curNode)
+				if (val_ == curNode->data)
 				{
-					if (val_ == curNode->data)
-					{
-						targetData.emplace(curNode->data);
-						break;
-					}
-					curNode = curNode->next;
+					targetData.emplace(curNode->data);
+					m_sharedMutexForErase.unlock_shared();
+					return targetData;
 				}
+				curNode = curNode->next;
 			}
-			return targetData;
+			m_sharedMutexForErase.unlock_shared();
+			return std::nullopt;
 		}
 		void erase(const Value& val_)noexcept
 		{
 			Node* prevNode = &head;
 			Node* curNode;
 			bool flag = false;
+			m_eraseLock.lock();
+			curNode = prevNode->next;
+			while (curNode)
 			{
-				std::lock_guard<std::mutex> erase_lock{ m_eraseLock };
-				//std::shared_lock<SRWLock> s_lock{ m_sharedMutex };
-				curNode = prevNode->next;
-				while (curNode)
+				if (val_ == curNode->data)
 				{
-					if (val_ == curNode->data)
-					{
-						flag = true;
-						std::lock_guard<SRWLock> lock{ m_sharedMutexForErase };
-						prevNode->next = curNode->next;
-						break;
-					}
-					prevNode = curNode;
-					curNode = curNode->next;
+					flag = true;
+					m_sharedMutexForErase.lock();
+					prevNode->next = curNode->next;
+					m_sharedMutexForErase.unlock();
+					break;
 				}
+				prevNode = curNode;
+				curNode = curNode->next;
 			}
+			m_eraseLock.unlock();
 			if (flag)
 			{
 				xdelete<Node>(curNode);
@@ -558,26 +526,25 @@ namespace ServerCore
 			Node* curNode;
 			bool flag = false;
 			std::optional<Value> target = std::nullopt;
+			m_eraseLock.lock();
+			curNode = prevNode->next;
+			while (curNode)
 			{
-				std::lock_guard<std::mutex> erase_lock{ m_eraseLock };
-				//std::shared_lock<SRWLock> s_lock{ m_sharedMutex };
-				curNode = prevNode->next;
-				while (curNode)
+				if (val_ == curNode->data)
 				{
-					if (val_ == curNode->data)
-					{
-						flag = true;
-						std::lock_guard<SRWLock> lock{ m_sharedMutexForErase };
-						prevNode->next = curNode->next;
-						target.emplace(std::move(curNode->data));
-						break;
-					}
-					prevNode = curNode;
-					curNode = curNode->next;
+					flag = true;
+					m_sharedMutexForErase.lock();
+					prevNode->next = curNode->next;
+					m_sharedMutexForErase.unlock();
+					break;
 				}
+				prevNode = curNode;
+				curNode = curNode->next;
 			}
+			m_eraseLock.unlock();
 			if (flag)
 			{
+				target.emplace(std::move(curNode->data));
 				xdelete<Node>(curNode);
 			}
 			return target;
@@ -592,8 +559,9 @@ namespace ServerCore
 				if (val_ == curNode->data)
 				{
 					flag = true;
-					std::lock_guard<SRWLock> lock{ m_sharedMutexForErase };
+					m_sharedMutexForErase.lock();
 					prevNode->next = curNode->next;
+					m_sharedMutexForErase.unlock();
 					break;
 				}
 				prevNode = curNode;
@@ -615,9 +583,9 @@ namespace ServerCore
 				if (val_ == curNode->data)
 				{
 					flag = true;
-					std::lock_guard<SRWLock> lock{ m_sharedMutexForErase };
+					m_sharedMutexForErase.lock();
 					prevNode->next = curNode->next;
-					target.emplace(std::move(curNode->data));
+					m_sharedMutexForErase.unlock();
 					break;
 				}
 				prevNode = curNode;
@@ -625,6 +593,7 @@ namespace ServerCore
 			}
 			if (flag)
 			{
+				target.emplace(std::move(curNode->data));
 				xdelete<Node>(curNode);
 			}
 			return target;
@@ -658,7 +627,7 @@ namespace ServerCore
 	{
 	private:
 		Vector<ConcurrentList<Key>> buckets;
-		std::hash<Key> hasher;
+		const std::hash<Key> hasher;
 	public:
 		ConcurrentHashSet(const std::size_t size_ = DEFAULT_MEM_POOL_SIZE) noexcept :buckets(size_) {}
 		~ConcurrentHashSet()noexcept

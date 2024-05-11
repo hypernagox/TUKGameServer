@@ -14,6 +14,6 @@ public:
 	Vec2 m_vPos = {};
 public:
 	class ClientSession* m_pSession = nullptr;
-	static inline std::shared_ptr<Chess> g_board[400 / SECTOR_SIZE][400 / SECTOR_SIZE];
+	static inline std::shared_ptr<Chess> g_board[2000 / SECTOR_SIZE][2000 / SECTOR_SIZE];
 };
 

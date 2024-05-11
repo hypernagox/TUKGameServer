@@ -13,14 +13,58 @@ namespace ServerCore
 	class Session;
 
 #define SIZE_OF_CALLBACK (104)
-
+//#define SIZE_OF_CALLBACK (58)
 	class Task
 	{
 	public:
-		Task()noexcept = delete;
-		Task(const Task&) = delete;
-		Task(Task&&)noexcept = delete;
-		inline constexpr ~Task()noexcept { m_fpTaskDeleter(static_cast<void* const>(argBuff)); }
+		//Task()noexcept = delete;
+		//Task(const Task&) = delete;
+		//Task(Task&&)noexcept = delete;
+		Task()noexcept = default;
+		Task(const Task& other)noexcept
+			: argPtr{ other.argPtr }
+			, m_fpTask{ other.m_fpTask }
+			, m_fpTaskDeleter{ other.m_fpTaskDeleter }
+		{
+			other.argPtr = nullptr;
+		}
+		Task& operator=(const Task& other)noexcept
+		{
+			if (this != &other)
+			{
+				argPtr = other.argPtr;
+				m_fpTask = other.m_fpTask;
+				m_fpTaskDeleter = other.m_fpTaskDeleter;
+				other.argPtr = nullptr;
+			}
+			return *this;
+		}
+		Task(Task&& other)noexcept
+			: argPtr{ other.argPtr }
+			, m_fpTask{ other.m_fpTask }
+			, m_fpTaskDeleter{ other.m_fpTaskDeleter }
+		{
+			other.argPtr = nullptr;
+		}
+		Task& operator=(Task&& other)noexcept
+		{
+			if (this != &other)
+			{
+				argPtr = other.argPtr;
+				m_fpTask = other.m_fpTask;
+				m_fpTaskDeleter = other.m_fpTaskDeleter;
+				other.argPtr = nullptr;
+			}
+			return *this;
+		}
+		inline constexpr ~Task()noexcept {
+			//m_fpTaskDeleter(static_cast<void* const>(argBuff));
+			if (argPtr)
+			{
+				m_fpTaskDeleter(argPtr);
+				argPtr = nullptr;
+			}
+		}
 
 		template<typename T, typename U, typename Ret, typename... Args> requires std::derived_from<U, T>
 		constexpr Task(Ret(T::* const memFunc)(Args...)noexcept, const std::shared_ptr<U>& memFuncInstance, Args&&... args)noexcept
@@ -43,9 +87,10 @@ namespace ServerCore
 					invokeMemberFunction(memFunc, memFuncCaller, std::move(args));
 				}
 			};
-			static_assert(SIZE_OF_CALLBACK >= sizeof(CallBack));
-			std::construct_at<CallBack>(reinterpret_cast<CallBack* const>(argBuff), memFunc, memFuncInstance, std::forward<Args>(args)...);
-			m_fpTaskDeleter = [](void* const callBackPtr_)noexcept {std::destroy_at<CallBack>(static_cast<CallBack* const>(callBackPtr_)); };
+			//static_assert(SIZE_OF_CALLBACK >= sizeof(CallBack));
+			//std::construct_at<CallBack>(reinterpret_cast<CallBack* const>(argBuff), memFunc, memFuncInstance, std::forward<Args>(args)...);
+			argPtr = xnew<CallBack>(memFunc, memFuncInstance, std::forward<Args>(args)...);
+			m_fpTaskDeleter = [](void* const callBackPtr_)noexcept {xdelete<CallBack>(static_cast<CallBack* const>(callBackPtr_)); };
 			m_fpTask = [](const void* const callBackPtr_)noexcept {return static_cast<const CallBack* const>(callBackPtr_)->operator()(); };
 		}
 		template<typename T, typename U, typename Ret, typename... Args> requires std::derived_from<U, T>
@@ -69,9 +114,10 @@ namespace ServerCore
 					invokeMemberFunction(memFunc, memFuncCaller, std::move(args));
 				}
 			};
-			static_assert(SIZE_OF_CALLBACK >= sizeof(CallBack));
-			std::construct_at<CallBack>(reinterpret_cast<CallBack* const>(argBuff), memFunc, std::move(memFuncInstance), std::forward<Args>(args)...);
-			m_fpTaskDeleter = [](void* const callBackPtr_)noexcept {std::destroy_at<CallBack>(static_cast<CallBack* const>(callBackPtr_)); };
+			//static_assert(SIZE_OF_CALLBACK >= sizeof(CallBack));
+			//std::construct_at<CallBack>(reinterpret_cast<CallBack* const>(argBuff), memFunc, std::move(memFuncInstance), std::forward<Args>(args)...);
+			argPtr = xnew<CallBack>(memFunc, std::move(memFuncInstance), std::forward<Args>(args)...);
+			m_fpTaskDeleter = [](void* const callBackPtr_)noexcept {xdelete<CallBack>(static_cast<CallBack* const>(callBackPtr_)); };
 			m_fpTask = [](const void* const callBackPtr_)noexcept {return static_cast<const CallBack* const>(callBackPtr_)->operator()(); };
 		}
 		template<typename T, typename U, typename Ret, typename... Args> requires EnableSharedFromThis<U>&& std::derived_from<U, T>
@@ -95,9 +141,10 @@ namespace ServerCore
 					invokeMemberFunction(memFunc, memFuncCaller, std::move(args));
 				}
 			};
-			static_assert(SIZE_OF_CALLBACK >= sizeof(CallBack));
-			std::construct_at<CallBack>(reinterpret_cast<CallBack* const>(argBuff), memFunc, memFuncInstance, std::forward<Args>(args)...);
-			m_fpTaskDeleter = [](void* const callBackPtr_)noexcept {std::destroy_at<CallBack>(static_cast<CallBack* const>(callBackPtr_)); };
+			//static_assert(SIZE_OF_CALLBACK >= sizeof(CallBack));
+			//std::construct_at<CallBack>(reinterpret_cast<CallBack* const>(argBuff), memFunc, memFuncInstance, std::forward<Args>(args)...);
+			argPtr = xnew<CallBack>(memFunc, memFuncInstance, std::forward<Args>(args)...);
+			m_fpTaskDeleter = [](void* const callBackPtr_)noexcept {xdelete<CallBack>(static_cast<CallBack* const>(callBackPtr_)); };
 			m_fpTask = [](const void* const callBackPtr_)noexcept {return static_cast<const CallBack* const>(callBackPtr_)->operator()(); };
 		}
 
@@ -122,9 +169,9 @@ namespace ServerCore
 					invokeMemberFunction(memFunc, memFuncCaller, std::move(args));
 				}
 			};
-			static_assert(SIZE_OF_CALLBACK >= sizeof(CallBack));
-			std::construct_at<CallBack>(reinterpret_cast<CallBack* const>(argBuff), memFunc, memFuncInstance, std::forward<Args>(args)...);
-			m_fpTaskDeleter = [](void* const callBackPtr_)noexcept {std::destroy_at<CallBack>(static_cast<CallBack* const>(callBackPtr_)); };
+			//static_assert(SIZE_OF_CALLBACK >= sizeof(CallBack));
+			//std::construct_at<CallBack>(reinterpret_cast<CallBack* const>(argBuff), memFunc, memFuncInstance, std::forward<Args>(args)...);
+			//m_fpTaskDeleter = [](void* const callBackPtr_)noexcept {std::destroy_at<CallBack>(static_cast<CallBack* const>(callBackPtr_)); };
 			//if constexpr (SIZE_OF_CALLBACK >= sizeof(CallBack))
 			//{
 			//	argPtr = std::construct_at<CallBack>(reinterpret_cast<CallBack* const>(argBuff), memFunc, memFuncInstance, std::forward<Args>(args)...);
@@ -135,6 +182,8 @@ namespace ServerCore
 			//	argPtr = xnew<CallBack>(memFunc, memFuncInstance, std::forward<Args>(args)...);
 			//	m_fpTaskDeleter = [](void* const callBackPtr_)noexcept {xdelete<CallBack>(static_cast<CallBack* const>(callBackPtr_)); };
 			//}
+			argPtr = xnew<CallBack>(memFunc, memFuncInstance, std::forward<Args>(args)...);
+			m_fpTaskDeleter = [](void* const callBackPtr_)noexcept {xdelete<CallBack>(static_cast<CallBack* const>(callBackPtr_)); };
 			m_fpTask = [](const void* const callBackPtr_)noexcept {return static_cast<const CallBack* const>(callBackPtr_)->operator()(); };
 		}
 		template<typename T, typename U, typename Ret, typename... Args> requires std::derived_from<U, T>
@@ -158,9 +207,9 @@ namespace ServerCore
 					invokeMemberFunction(memFunc, memFuncCaller, std::move(args));
 				}
 			};
-			static_assert(SIZE_OF_CALLBACK >= sizeof(CallBack));
-			std::construct_at<CallBack>(reinterpret_cast<CallBack* const>(argBuff), memFunc, std::move(memFuncInstance), std::forward<Args>(args)...);
-			m_fpTaskDeleter = [](void* const callBackPtr_)noexcept {std::destroy_at<CallBack>(static_cast<CallBack* const>(callBackPtr_)); };
+			//static_assert(SIZE_OF_CALLBACK >= sizeof(CallBack));
+			//std::construct_at<CallBack>(reinterpret_cast<CallBack* const>(argBuff), memFunc, std::move(memFuncInstance), std::forward<Args>(args)...);
+			//m_fpTaskDeleter = [](void* const callBackPtr_)noexcept {std::destroy_at<CallBack>(static_cast<CallBack* const>(callBackPtr_)); };
 			//if constexpr (SIZE_OF_CALLBACK >= sizeof(CallBack))
 			//{
 			//	argPtr = std::construct_at<CallBack>(reinterpret_cast<CallBack* const>(argBuff), memFunc, std::move(memFuncInstance), std::forward<Args>(args)...);
@@ -171,6 +220,8 @@ namespace ServerCore
 			//	argPtr = xnew<CallBack>(memFunc, std::move(memFuncInstance), std::forward<Args>(args)...);
 			//	m_fpTaskDeleter = [](void* const callBackPtr_)noexcept {xdelete<CallBack>(static_cast<CallBack* const>(callBackPtr_)); };
 			//}
+			argPtr = xnew<CallBack>(memFunc, std::move(memFuncInstance), std::forward<Args>(args)...);
+			m_fpTaskDeleter = [](void* const callBackPtr_)noexcept {xdelete<CallBack>(static_cast<CallBack* const>(callBackPtr_)); };
 			m_fpTask = [](const void* const callBackPtr_)noexcept {return static_cast<const CallBack* const>(callBackPtr_)->operator()(); };
 		}
 		template<typename T, typename U, typename Ret, typename... Args> requires EnableSharedFromThis<U> && std::derived_from<U, T>
@@ -194,9 +245,9 @@ namespace ServerCore
 					invokeMemberFunction(memFunc, memFuncCaller, std::move(args));
 				}
 			};
-			static_assert(SIZE_OF_CALLBACK >= sizeof(CallBack));
-			std::construct_at<CallBack>(reinterpret_cast<CallBack* const>(argBuff), memFunc, memFuncInstance, std::forward<Args>(args)...);
-			m_fpTaskDeleter = [](void* const callBackPtr_)noexcept {std::destroy_at<CallBack>(static_cast<CallBack* const>(callBackPtr_)); };
+			//static_assert(SIZE_OF_CALLBACK >= sizeof(CallBack));
+			//std::construct_at<CallBack>(reinterpret_cast<CallBack* const>(argBuff), memFunc, memFuncInstance, std::forward<Args>(args)...);
+			//m_fpTaskDeleter = [](void* const callBackPtr_)noexcept {std::destroy_at<CallBack>(static_cast<CallBack* const>(callBackPtr_)); };
 			//if constexpr (SIZE_OF_CALLBACK >= sizeof(CallBack))
 			//{
 			//	argPtr = std::construct_at<CallBack>(reinterpret_cast<CallBack* const>(argBuff), memFunc, memFuncInstance, std::forward<Args>(args)...);
@@ -207,6 +258,8 @@ namespace ServerCore
 			//	argPtr = xnew<CallBack>(memFunc, memFuncInstance, std::forward<Args>(args)...);
 			//	m_fpTaskDeleter = [](void* const callBackPtr_)noexcept {xdelete<CallBack>(static_cast<CallBack* const>(callBackPtr_)); };
 			//}
+			argPtr = xnew<CallBack>(memFunc, memFuncInstance, std::forward<Args>(args)...);
+			m_fpTaskDeleter = [](void* const callBackPtr_)noexcept {xdelete<CallBack>(static_cast<CallBack* const>(callBackPtr_)); };
 			m_fpTask = [](const void* const callBackPtr_)noexcept {return static_cast<const CallBack* const>(callBackPtr_)->operator()(); };
 		}
 		template<typename Func, typename... Args> requires std::invocable<Func, Args...> && IsNotMemFunc<Func>
@@ -225,9 +278,9 @@ namespace ServerCore
 					std::apply(std::move(fp), std::move(args));
 				}
 			};
-			static_assert(SIZE_OF_CALLBACK >= sizeof(CallBack));
-			std::construct_at<CallBack>(reinterpret_cast<CallBack* const>(argBuff), std::forward<Func>(fp), std::move(args)...);
-			m_fpTaskDeleter = [](void* const callBackPtr_)noexcept {std::destroy_at<CallBack>(static_cast<CallBack* const>(callBackPtr_)); };
+			//static_assert(SIZE_OF_CALLBACK >= sizeof(CallBack));
+			//std::construct_at<CallBack>(reinterpret_cast<CallBack* const>(argBuff), std::forward<Func>(fp), std::move(args)...);
+			//m_fpTaskDeleter = [](void* const callBackPtr_)noexcept {std::destroy_at<CallBack>(static_cast<CallBack* const>(callBackPtr_)); };
 			//if constexpr (SIZE_OF_CALLBACK >= sizeof(CallBack))
 			//{
 			//	argPtr = std::construct_at<CallBack>(reinterpret_cast<CallBack* const>(argBuff), std::forward<Func>(fp), std::forward<Args>(args)...);
@@ -238,14 +291,21 @@ namespace ServerCore
 			//	argPtr = xnew<CallBack>(std::forward<Func>(fp), std::forward<Args>(args)...);
 			//	m_fpTaskDeleter = [](void* const callBackPtr_)noexcept {xdelete<CallBack>(static_cast<CallBack* const>(callBackPtr_)); };
 			//}
+			argPtr = xnew<CallBack>(std::forward<Func>(fp), std::forward<Args>(args)...);
+			m_fpTaskDeleter = [](void* const callBackPtr_)noexcept {xdelete<CallBack>(static_cast<CallBack* const>(callBackPtr_)); };
 			m_fpTask = [](const void* const callBackPtr_)noexcept {return static_cast<const CallBack* const>(callBackPtr_)->operator()(); };
 		}
-		inline constexpr void ExecuteTask()const noexcept { m_fpTask(static_cast<const void* const>(argBuff)); }
+		inline constexpr void ExecuteTask()const noexcept {
+			//m_fpTask(
+			//	reinterpret_cast<const char* const>(this) + sizeof(m_fpTask) + sizeof(m_fpTaskDeleter)
+			//);
+			m_fpTask(argPtr);
+		}
 	private:
-		//void* argPtr;
+		mutable void* argPtr = nullptr;
 		void(*m_fpTask)(const void* const)noexcept;
 		void(*m_fpTaskDeleter)(void* const)noexcept;
-		BYTE argBuff[SIZE_OF_CALLBACK];
+		//BYTE argBuff[SIZE_OF_CALLBACK];
 
 	private:
 		template<typename Function, typename T, typename Tuple, size_t... I>

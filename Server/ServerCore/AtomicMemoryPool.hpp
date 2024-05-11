@@ -1,13 +1,16 @@
 #pragma once
 #include "ServerCorePch.h"
 #include <Windows.h>
+#include "MemoryHeader.hpp"
 
 namespace ServerCore
 {
     template<typename T>
     class AtomicMemoryPool
     {
-        constinit static inline const uint8 CACHE_LINE_MINUS_ONE = static_cast<c_uint8>(std::hardware_constructive_interference_size - 1);
+        static inline std::atomic_int cnt = 0;
+        //constinit static inline const uint8 CACHE_LINE_MINUS_ONE = static_cast<c_uint8>(std::hardware_constructive_interference_size - 1);
+        constinit static inline const uint8 CACHE_LINE_MINUS_ONE = static_cast<c_uint8>(8 - 1);
         static const inline HANDLE g_handle = GetProcessHeap();
     private:
         struct alignas(8) Block
@@ -27,19 +30,19 @@ namespace ServerCore
         std::atomic<uint64_t> head;
         const size_t blockSize;
         const size_t maxBlockCount;
-        static inline constinit const uint32_t maxTagValue = (1 << 24) - 1;
+        static inline constinit const uint32_t maxTagValue = (1 << 19) - 1;
     private:
         static constexpr const uint64_t packPointerAndTag(const Block* const ptr, const uint32_t tag) noexcept {
             const uintptr_t ptrVal = reinterpret_cast<uintptr_t>(ptr);
-            return (static_cast<const uint64_t>(ptrVal) & 0x3FFFFFFFFFF) | (static_cast<const uint64_t>(tag) << 42);
+            return (static_cast<const uint64_t>(ptrVal) & 0x7FFFFFFFFFF) | (static_cast<const uint64_t>(tag) << 45);
         }
 
         static constexpr const Block* const unpackPointer(const uint64_t combined) noexcept {
-            return reinterpret_cast<const Block* const>(combined & 0x3FFFFFFFFFF);
+            return reinterpret_cast<const Block* const>(combined & 0x7FFFFFFFFFF);
         }
 
         static constexpr const uint32_t unpackTag(const uint64_t combined) noexcept {
-            return static_cast<const uint32_t>(combined >> 42);
+            return static_cast<const uint32_t>(combined >> 45);
         }
 
         void initialize() noexcept
@@ -65,6 +68,7 @@ namespace ServerCore
                 std::memory_order_relaxed, std::memory_order_relaxed))
             {
             }
+            std::atomic_thread_fence(std::memory_order_acquire);
             return reinterpret_cast<T* const>(newBlock + 1);
         }
 
@@ -72,7 +76,7 @@ namespace ServerCore
         struct alignas(8) AlignedStorage { alignas(8) Block pad; alignas(8)std::byte data[sizeof(T)]; };
     public:
         AtomicMemoryPool(const size_t count = DEFAULT_MEM_POOL_SIZE)
-            : blockSize{ (sizeof(T) + sizeof(Block) + CACHE_LINE_MINUS_ONE) & ~CACHE_LINE_MINUS_ONE }
+            : blockSize{ (sizeof(MemoryHeader) + sizeof(T) + sizeof(Block) + CACHE_LINE_MINUS_ONE) & ~CACHE_LINE_MINUS_ONE }
             , maxBlockCount{ count }
             , poolTop{ nullptr }
         {
@@ -105,12 +109,11 @@ namespace ServerCore
                     return allocateNewBlock();
                 }
                 const uint32_t newTag = unpackTag(oldCombined) + 1;
-                const Block* const nextBlock = unpackPointer(currentBlock->combined.load(std::memory_order_acquire));
+                const Block* const nextBlock = unpackPointer(currentBlock->combined.load(std::memory_order_relaxed));
                 newCombined = packPointerAndTag(nextBlock, newTag);
             } while (!head.compare_exchange_weak(oldCombined, newCombined,
-                std::memory_order_relaxed,
+                std::memory_order_acquire,
                 std::memory_order_relaxed));
-
             return reinterpret_cast<T* const>(const_cast<Block* const>(currentBlock) + 1);
         }
 
@@ -147,7 +150,7 @@ namespace ServerCore
         }
     };
 
-    static constexpr const size_t DEFAULT_ATOMIC_ALLOCATOR_SIZE = 256;
+    static constexpr const size_t DEFAULT_ATOMIC_ALLOCATOR_SIZE = 128;
 
     template <typename T>
     class AtomicAllocator

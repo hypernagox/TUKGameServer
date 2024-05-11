@@ -10,7 +10,7 @@ public:
 	~NPC();
 public:
 	virtual const ServerCore::TIMER_STATE TimerUpdate()noexcept override;
-private:
+public:
 	std::chrono::steady_clock::time_point m_time{};
 };
 

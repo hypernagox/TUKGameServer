@@ -15,24 +15,27 @@ namespace ServerCore
 	{
 	}
 
-	bool IocpCore::RegisterIOCP(const IocpObject* const iocpObject_)const noexcept
+	bool IocpCore::RegisterIOCP(const IocpObject* const iocpObject_, const uint64 iocpKey_)const noexcept
 	{
-		return ::CreateIoCompletionPort(iocpObject_->GetHandle(), m_iocpHandle, 0, 0);
+		return ::CreateIoCompletionPort(iocpObject_->GetHandle(), m_iocpHandle, (ULONG_PTR)(iocpKey_), 0);
 	}
 
 	bool IocpCore::Dispatch(c_uint32 timeOutMs)const noexcept
 	{
 		DWORD numOfBytes = 0;
-		ULONG_PTR dummyKey = 0;
 		IocpEvent* iocpEvent = nullptr;
 
-		const BOOL bResult = ::GetQueuedCompletionStatus(m_iocpHandle, OUT & numOfBytes, OUT & dummyKey, OUT reinterpret_cast<LPOVERLAPPED*>(&iocpEvent), timeOutMs);
+		const BOOL bResult = ::GetQueuedCompletionStatus(m_iocpHandle, OUT & numOfBytes, OUT reinterpret_cast<PULONG_PTR>(&LCurHandleSessionID), OUT reinterpret_cast<LPOVERLAPPED*>(&iocpEvent), timeOutMs);
 
+		LEndTickCount = ::GetTickCount64() + 128;
+		//LEndTickCount = ::GetTickCount64() + 100;
 		if (iocpEvent)
 		{
 			if (const S_ptr<IocpObject>& iocpObject = iocpEvent->GetIocpObject())
 			{
 				iocpObject->Dispatch(iocpEvent, numOfBytes);
+
+				return true;
 			}
 		}
 		else
@@ -49,6 +52,6 @@ namespace ServerCore
 			}
 		}
 
-		return true;
+		return false;
 	}
 }

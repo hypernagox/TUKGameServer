@@ -6,7 +6,6 @@ namespace ServerCore
 	IocpObject::IocpObject()
 	{
 	}
-
 	IocpObject::~IocpObject()
 	{
 	}

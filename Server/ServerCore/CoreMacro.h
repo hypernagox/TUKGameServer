@@ -34,9 +34,10 @@
 }
 
 
-#define TRACK_FUNC_LOG
-#define TRACK_LOG
+//#define TRACK_FUNC_LOG
+//#define TRACK_LOG
 #define USE_NAGOX_ASSERT
+#define USE_PRINT_ERROR
 
 #ifdef TRACK_FUNC_LOG
 #define CREATE_FUNC_LOG(msg) const auto FUNC_LOG = Mgr(Logger)->CreateFuncLog(msg)
@@ -56,7 +57,7 @@
     do { \
         if (!(condition)) [[unlikely]] { \
             std::cerr << "Activate NagOx Assertion !" << '\n'; \
-			LogStackTrace(); \
+			ServerCore::LogStackTrace(); \
             *(int*)nullptr = 0; \
         } \
     } while (0)
@@ -81,6 +82,17 @@
 #else
 
 #define NAGOX_ASSERT_LOG(condition, log)
+
+#endif
+
+#ifdef USE_PRINT_ERROR
+
+#define PRINT_ERROR(condition, log, err_code) \
+        if (!(condition)) [[unlikely]] \
+            PrintError(log,err_code); 
+#else
+
+#define PRINT_ERROR(condition, log, err_code)
 
 #endif
 

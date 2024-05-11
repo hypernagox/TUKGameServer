@@ -7,7 +7,7 @@ public:
 	IDGenerator() = delete;
 	~IDGenerator() = delete;
 public:
-	static c_uint64 GenerateID()noexcept { return g_objectID.fetch_add(1, std::memory_order_acq_rel); }
+	static c_uint64 GenerateID()noexcept { return g_objectID.fetch_add(1, std::memory_order_relaxed); }
 private:
 	static inline std::atomic<uint64> g_objectID = 1;
 };

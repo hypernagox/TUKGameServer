@@ -1,0 +1,40 @@
+#pragma once
+#include "IocpObject.h"
+#include "IocpEvent.h"
+
+namespace ServerCore
+{
+	enum class TIMER_STATE : uint8
+	{
+		IDLE,
+		RUN,
+		PREPARE,
+
+		END,
+	};
+
+	class TimerObject
+		:public IocpEntity
+	{
+	public:
+		TimerObject(const uint16_t type_id, S_ptr<ContentsEntity> pEntity_) noexcept
+			:IocpEntity{ type_id,std::move(pEntity_) }
+		{}
+	public:
+		virtual void InitTimer(const S_ptr<TimerObject>& forCacheThis_, const uint64 tick_ms)noexcept;
+		const bool ExecuteTimer()noexcept;
+		void StopTimer()noexcept { m_bStopFlag.store(true, std::memory_order_release); }
+		void SetTickInterval(const uint64 tick_ms)noexcept { m_tickInterval = tick_ms; }
+	protected:
+		virtual HANDLE GetHandle()const noexcept { return nullptr; }
+		virtual const ServerCore::TIMER_STATE TimerUpdate()noexcept = 0;
+	private:
+		virtual void Dispatch(IocpEvent* const iocpEvent_, c_int32 numOfBytes)noexcept override;
+	private:
+		std::atomic_bool m_bStopFlag = false;
+		std::atomic<TIMER_STATE> m_timer_state = TIMER_STATE::IDLE;
+		uint64_t m_tickInterval = 0;
+		IocpEvent m_timerEvent{ EVENT_TYPE::TIMER };
+	};
+}
+

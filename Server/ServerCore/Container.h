@@ -50,4 +50,7 @@ namespace ServerCore
 
 	template <typename T>
 	using W_ptr = std::weak_ptr<T>;
+
+	template <typename T>
+	using MemPoolList = std::list<T, AtomicAllocator<T>>;
 }

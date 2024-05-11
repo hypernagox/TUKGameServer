@@ -10,29 +10,33 @@ namespace ServerCore
 	private:
 		struct Node {
 			T data;
-			Node* next = nullptr;
+			std::atomic<Node*> next = nullptr;
 			template<typename... Args>
 			constexpr Node(Args&&... args)noexcept :data{ std::forward<Args>(args)... }, next{ nullptr } {}
 		};
-		Node* head;
+		std::atomic<Node*> head;
 		SpinLock headLock;
 		std::atomic<Node*> tail;
 	private:
 		void reset()noexcept {
-			while (Node* const nextHead = head->next)
+			Node* curHead = head.load(std::memory_order_acquire);
+			const Node* const curTail = tail.load(std::memory_order_acquire);
+			while (curTail != curHead)
 			{
-				xdelete<Node>(head);
-				head = nextHead;
+				Node* const delHead = curHead;
+				curHead = curHead->next.load(std::memory_order_acquire);
+				xdelete<Node>(delHead);
 			}
+			head.store(curHead, std::memory_order_release);
 		}
 	public:
 		MPSCQueue()noexcept :head{ xnew<Node>() } {
 			tail.store(head, std::memory_order_relaxed);
-			head->next = nullptr;
+			head.load(std::memory_order_relaxed)->next.store(nullptr, std::memory_order_relaxed);
 		}
 		~MPSCQueue()noexcept {
 			reset();
-			xdelete<Node>(head);
+			xdelete<Node>(head.load(std::memory_order_relaxed));
 		}
 		template <typename... Args>
 		void emplace(Args&&... args) noexcept {
@@ -43,8 +47,7 @@ namespace ServerCore
 				, std::memory_order_relaxed))
 			{
 			}
-			oldTail->next = value;
-			std::atomic_thread_fence(std::memory_order_release);
+			oldTail->next.store(value, std::memory_order_release);
 		}
 		const bool try_pop(T& _target)noexcept {
 			Node* oldHead;
@@ -82,11 +85,11 @@ namespace ServerCore
 			return true;
 		}
 		const bool try_pop_for_cv(T& _target, std::unique_lock<SpinLock>& cvLock)noexcept {
-			std::atomic_thread_fence(std::memory_order_acquire);
-			if (Node* const __restrict newHead = head->next)
+			Node* const head_temp = head.load(std::memory_order_relaxed);
+			if (Node* const __restrict newHead = head_temp->next.load(std::memory_order_acquire))
 			{
-				Node* const oldHead = head;
-				head = newHead;
+				Node* const oldHead = head_temp;
+				head.store(newHead, std::memory_order_release);
 				if constexpr (std::swappable<T>)
 					_target.swap(newHead->data);
 				else
@@ -98,11 +101,11 @@ namespace ServerCore
 			return false;
 		}
 		const bool try_pop_single(T& _target)noexcept {
-			std::atomic_thread_fence(std::memory_order_acquire);
-			if (Node* const __restrict newHead = head->next)
+			Node* const head_temp = head.load(std::memory_order_relaxed);
+			if (Node* const __restrict newHead = head_temp->next.load(std::memory_order_acquire))
 			{
-				Node* const oldHead = head;
-				head = newHead;
+				Node* const oldHead = head_temp;
+				head.store(newHead, std::memory_order_release);
 				if constexpr (std::swappable<T>)
 					_target.swap(newHead->data);
 				else
@@ -113,11 +116,36 @@ namespace ServerCore
 			return false;
 		}
 		const bool try_pop_single(Vector<T>& _targetForPushBack)noexcept {
-			std::atomic_thread_fence(std::memory_order_acquire);
-			if (Node* const __restrict newHead = head->next)
+			Node* const head_temp = head.load(std::memory_order_relaxed);
+			if (Node* const __restrict newHead = head_temp->next.load(std::memory_order_acquire))
 			{
-				Node* const oldHead = head;
-				head = newHead;
+				Node* const oldHead = head_temp;
+				head.store(newHead, std::memory_order_release);
+				_targetForPushBack.emplace_back(std::move(newHead->data));
+				xdelete<Node>(oldHead);
+				return true;
+			}
+			return false;
+		}
+		const bool try_pop_single(T& _target,Node*& head_temp)noexcept {
+			if (Node* const __restrict newHead = head_temp->next.load(std::memory_order_acquire))
+			{
+				Node* const oldHead = head_temp;
+				head_temp = newHead;
+				if constexpr (std::swappable<T>)
+					_target.swap(newHead->data);
+				else
+					std::swap(_target, newHead->data);
+				xdelete<Node>(oldHead);
+				return true;
+			}
+			return false;
+		}
+		const bool try_pop_single(Vector<T>& _targetForPushBack, Node*& head_temp)noexcept {
+			if (Node* const __restrict newHead = head_temp->next.load(std::memory_order_acquire))
+			{
+				Node* const oldHead = head_temp;
+				head_temp = newHead;
 				_targetForPushBack.emplace_back(std::move(newHead->data));
 				xdelete<Node>(oldHead);
 				return true;
@@ -149,11 +177,15 @@ namespace ServerCore
 			while (try_pop(vec_));
 		}
 		Vector<T> try_flush_single()noexcept {
-			Vector<T> vec; vec.reserve(32); while (try_pop_single(vec));
+			Node* head_temp = head.load(std::memory_order_acquire);
+			Vector<T> vec; vec.reserve(32); while (try_pop_single(vec, head_temp));
+			head.store(head_temp, std::memory_order_release);
 			return vec;
 		}
 		void try_flush_single(Vector<T>& vec_)noexcept {
-			while (try_pop_single(vec_));
+			Node* head_temp = head.load(std::memory_order_acquire);
+			while (try_pop_single(vec_, head_temp));
+			head.store(head_temp, std::memory_order_release);
 		}
 		const bool empty() noexcept {
 			bool bIsEmpty;
@@ -164,7 +196,7 @@ namespace ServerCore
 			return bIsEmpty;
 		}
 		const bool empty_single()const noexcept {
-			return tail.load(std::memory_order_acquire) == head;
+			return tail.load(std::memory_order_relaxed) == head.load(std::memory_order_relaxed);
 		}
 		void clear() noexcept {
 			{

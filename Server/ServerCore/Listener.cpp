@@ -43,7 +43,7 @@ namespace ServerCore
 		if (false == SocketUtils::Listen(m_socket))
 			return false;
 
-		constexpr const int32 acceptCount = ThreadMgr::NUM_OF_THREADS;
+		constexpr const int32 acceptCount = 1;
 
 		for (int i = 0; i < acceptCount; ++i)
 		{
@@ -77,7 +77,7 @@ namespace ServerCore
 	{
 		NAGOX_ASSERT(iocpEvent_->GetEventType() == EVENT_TYPE::ACCEPT);
 		const auto acceptEvent = iocpEvent_->Cast<AcceptEvent>();
-		const S_ptr<PacketSession> pSession{ std::static_pointer_cast<PacketSession>(acceptEvent->PassSession()) };
+		S_ptr<PacketSession> pSession{ std::static_pointer_cast<PacketSession>(acceptEvent->PassSession()) };
 		ProcessAccept(pSession, acceptEvent);
 	}
 
@@ -111,20 +111,20 @@ namespace ServerCore
 		{
 			return;
 		}
-
+		const auto session_ptr = pSession.get();
 		const SOCKET sessionSocket = pSession->GetSocket();
 
 		if (false == SocketUtils::SetUpdateAcceptSocket(sessionSocket, m_socket))
 		{
 			RegisterAccept(acceptEvent);
-			pSession->reset_cache_shared(*this);
+			session_ptr->reset_cache_shared(*this);
 			return;
 		}
 
 		if (false == SocketUtils::SetTcpNoDelay(sessionSocket, true))
 		{
 			RegisterAccept(acceptEvent);
-			pSession->reset_cache_shared(*this);
+			session_ptr->reset_cache_shared(*this);
 			return;
 		}
 
@@ -133,21 +133,21 @@ namespace ServerCore
 		if (SOCKET_ERROR == ::getpeername(sessionSocket, reinterpret_cast<SOCKADDR* const>(&sockAddress), &sizeOfSockAddr))
 		{
 			RegisterAccept(acceptEvent);
-			pSession->reset_cache_shared(*this);
+			session_ptr->reset_cache_shared(*this);
 			return;
 		}
 
-		pSession->SetNetAddress(NetAddress{ sockAddress });
-		pSession->ProcessConnect(pSession);
+		session_ptr->SetNetAddress(NetAddress{ sockAddress });
+		session_ptr->ProcessConnect(pSession);
 
-		if (pSession->IsConnected())
+		if (session_ptr->IsConnected())
 		{
-			LOG_MSG(L"client in");
+			//LOG_MSG(L"client in");
 		}
 		else
 		{
 			LOG_MSG(L"Server Is Full");
-			pSession->reset_cache_shared(*this);
+			session_ptr->reset_cache_shared(*this);
 			// TODO: 입장 정원 초과 메시지 보내기 또는 현재 더 받을 여유가 없음
 			//std::this_thread::sleep_for(std::chrono::seconds(3));
 		}

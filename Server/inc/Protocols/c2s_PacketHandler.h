@@ -1,11 +1,11 @@
 #pragma once
 #include "ServerCorePch.h"
-#include "Protocol.pb.h"
+//#include "Protocol.pb.h"
 
 namespace ServerCore
 {
-	template<typename T>requires std::is_enum_v<T>
-	static inline constexpr const uint16 net_etoi(const T eType_)noexcept { return static_cast<const uint16>(eType_); }
+	//template<typename T>requires std::is_enum_v<T>
+	//static inline constexpr const uint16 net_etoi(const T eType_)noexcept { return static_cast<const uint16>(eType_); }
 
 	enum class PKT_ID: uint16
 	{
@@ -57,9 +57,9 @@ namespace ServerCore
 			const PacketHeader* const header = reinterpret_cast<const PacketHeader* const>(pBuff_);
 			return g_fpPacketHandler[header->pkt_id](pSession_, pBuff_, len_);
 		}
-		static S_ptr<SendBuffer> MakeSendBuffer(Protocol::s2c_LOGIN& pkt)noexcept { return MakeSendBuffer(pkt, PKT_ID::s2c_LOGIN); }
-		static S_ptr<SendBuffer> MakeSendBuffer(Protocol::s2c_ENTER_GAME& pkt)noexcept { return MakeSendBuffer(pkt, PKT_ID::s2c_ENTER_GAME); }
-		static S_ptr<SendBuffer> MakeSendBuffer(Protocol::s2c_CHAT& pkt)noexcept { return MakeSendBuffer(pkt, PKT_ID::s2c_CHAT); }
+		//static S_ptr<SendBuffer> MakeSendBuffer(Protocol::s2c_LOGIN& pkt)noexcept { return MakeSendBuffer(pkt, PKT_ID::s2c_LOGIN); }
+		//static S_ptr<SendBuffer> MakeSendBuffer(Protocol::s2c_ENTER_GAME& pkt)noexcept { return MakeSendBuffer(pkt, PKT_ID::s2c_ENTER_GAME); }
+		//static S_ptr<SendBuffer> MakeSendBuffer(Protocol::s2c_CHAT& pkt)noexcept { return MakeSendBuffer(pkt, PKT_ID::s2c_CHAT); }
 	
 	private:
 		template<typename PacketType, typename ProcessFunc>
@@ -80,8 +80,8 @@ namespace ServerCore
 	
 			S_ptr<SendBuffer> sendBuffer = Mgr(SendBufferMgr)->Open(packetSize);
 			PacketHeader* const __restrict header = reinterpret_cast<PacketHeader*const>(sendBuffer->Buffer());
-			header->pkt_size = packetSize;
-			header->pkt_id = static_cast<c_uint16>(pktId);
+			header->pkt_size = (uint8)packetSize;
+			header->pkt_id = static_cast<c_int8>(pktId);
 			NAGOX_ASSERT(pkt.SerializeToArray(header + 1, dataSize));
 			sendBuffer->Close(packetSize);
 	
