@@ -66,23 +66,29 @@ const ServerCore::TIMER_STATE NPC::TimerUpdate() noexcept
 		add_packet.y = (short)GetContentsEntity()->GetHorse()->m_yPos;
 	}
 
-	Horse::g_board[rc.first][rc.second]->MoveBroadCastEnqueue(SharedCastThis<ServerCore::IocpEntity>(),
+	const int sector_state = Horse::g_board[rc.first][rc.second]->MoveBroadCastEnqueue(SharedCastThis<ServerCore::IocpEntity>(),
 		add_packet.MakeSendBuffer()
 		, remove_packet.MakeSendBuffer(),
 		p.MakeSendBuffer());
-
+	const auto exec_time = std::chrono::steady_clock::now() - m_time;
+	if constexpr (true == POSSIBILITY_ON)
+	{
+		const auto r = rand() % 100;
+		if (r < POSSIBILITY)
+			std::cout << GetContentsEntity()->getName() << " : " << std::chrono::duration_cast<std::chrono::milliseconds>(exec_time).count() << "ms\n";
+	}
 	if (std::pair<short, short>{prev_y, prev_x} != rc)
 	{
 		Horse::g_board[prev_y][prev_x]->ImmigrationEnqueue(Horse::g_board[rc.first][rc.second], GetObjectID());
 	}
 	//return ServerCore::TIMER_STATE::RUN;
-	if (false == m_broadCaster->m_bUpdateFlag)
+	m_time = std::chrono::steady_clock::now();
+	if (ServerCore::SECTOR_STATE::USER_EMPTY & sector_state)
 	{
 		return ServerCore::TIMER_STATE::IDLE;
 	}
 	else
 	{
-		m_time = std::chrono::steady_clock::now();
 		return ServerCore::TIMER_STATE::RUN;
 	}
 }
