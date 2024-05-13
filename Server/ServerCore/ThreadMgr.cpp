@@ -157,7 +157,8 @@ namespace ServerCore
 		//LCon_token = xnew <moodycamel::ConsumerToken>(m_globalTaskQueue);
 		LCon_tokenGlobalTask = xnew <moodycamel::ConsumerToken>(m_globalTask);
 
-		LSendBufferChunk = Mgr(SendBufferMgr)->Pop();
+		if(NUM_OF_THREADS >= LThreadId)
+			LSendBufferChunk = Mgr(SendBufferMgr)->Pop();
 	}
 
 	void ThreadMgr::DestroyTLS()

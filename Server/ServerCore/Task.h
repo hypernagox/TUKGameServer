@@ -291,7 +291,7 @@ namespace ServerCore
 			//	argPtr = xnew<CallBack>(std::forward<Func>(fp), std::forward<Args>(args)...);
 			//	m_fpTaskDeleter = [](void* const callBackPtr_)noexcept {xdelete<CallBack>(static_cast<CallBack* const>(callBackPtr_)); };
 			//}
-			argPtr = xnew<CallBack>(std::forward<Func>(fp), std::forward<Args>(args)...);
+			argPtr = xnew<CallBack>(std::forward<Func>(fp), std::move<Args>(args)...);
 			m_fpTaskDeleter = [](void* const callBackPtr_)noexcept {xdelete<CallBack>(static_cast<CallBack* const>(callBackPtr_)); };
 			m_fpTask = [](const void* const callBackPtr_)noexcept {return static_cast<const CallBack* const>(callBackPtr_)->operator()(); };
 		}
