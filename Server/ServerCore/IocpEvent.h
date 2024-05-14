@@ -80,7 +80,10 @@ namespace ServerCore
 	public:
 		AcceptEvent() :IocpEvent{ EVENT_TYPE::ACCEPT } {}
 		~AcceptEvent();
-		void RegisterSession(S_ptr<Session> pSession_)noexcept { m_pSession.swap(pSession_); }
+		const S_ptr<Session>& RegisterSession(S_ptr<Session>&& pSession_)noexcept { 
+			m_pSession.swap(pSession_);
+			return m_pSession;
+		}
 		S_ptr<Session> ReleaseSession()noexcept { return S_ptr<Session>{std::move(m_pSession)}; }
 		[[nodiscard]] constexpr __forceinline S_ptr<Session>&& PassSession()noexcept { return std::move(m_pSession); }
 	private:
