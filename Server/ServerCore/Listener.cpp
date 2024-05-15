@@ -86,11 +86,9 @@ namespace ServerCore
 		if (false == CanAccept())
 			return;
 
-		const S_ptr<Session> session = m_pServerService->CreateSession();
-
 		acceptEvent->Init();
-		acceptEvent->RegisterSession(session);
-
+		const S_ptr<Session>& session = acceptEvent->RegisterSession(m_pServerService->CreateSession());
+		
 		//DWORD bytesReceived;
 		if (false == SocketUtils::AcceptEx(m_socket, session->GetSocket(), session->m_pRecvBuffer->WritePos(), 0,
 			sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, NULL, acceptEvent))
