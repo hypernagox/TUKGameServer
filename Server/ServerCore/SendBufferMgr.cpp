@@ -30,7 +30,7 @@ namespace ServerCore
 	};
 
 	SendBufferMgr::SendBufferMgr()
-		:m_pSendBufferPool{ MakeUnique<AtomicNonTemplate>(AllocateSharedActualSize<SendBufferChunk>()) }
+		:m_pSendBufferPool{ AllocateSharedActualSize<SendBufferChunk>() }
 	{
 	}
 
