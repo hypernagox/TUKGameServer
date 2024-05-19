@@ -19,9 +19,13 @@ namespace ServerCore
 	-------------------*/
 
 	using SessionFactory = std::function<S_ptr<Session>(void)>;
-
+	
 	class Service
 	{
+		struct alignas(64) AtomicSessionPtr
+		{
+			std::atomic<S_ptr<Session>> ptr;
+		};
 	public:
 		Service(const std::shared_ptr<IocpCore>& pIocp_, SERVICE_TYPE eServiceType_, NetAddress addr_, SessionFactory factory_, c_int32 maxSessionCount_ = 1);
 		virtual ~Service();
@@ -40,6 +44,7 @@ namespace ServerCore
 		SERVICE_TYPE GetServiceType()const noexcept{ return m_eServiceType; }
 		NetAddress GetNetAddress()const noexcept{ return m_netAddr; }
 		const S_ptr<IocpCore>& GetIocpCore()const noexcept { return m_pIocpCore; }
+		S_ptr<Session> GetSession(const uint64_t sessionID_)noexcept;
 	public:
 		void IterateSession(std::function<void(const S_ptr<Session>&)> fpIterate_)noexcept;
 	protected:
@@ -52,8 +57,15 @@ namespace ServerCore
 		std::atomic<int32> m_sessionCount = 0;
 		int32 m_maxSessionCount;
 
-		Concurrency::concurrent_priority_queue<int32, std::greater<int32>, StlAllocator<int32>> m_idxQueue;
-		Vector<S_ptr<Session>> m_vecSession;
+		Concurrency::concurrent_unordered_map<
+			uint32_t, 
+			uint16_t,
+			std::hash<uint32_t>,
+			std::equal_to<uint32_t>,
+			StlAllocator<std::pair<const uint32_t,uint16_t>>> m_id2Index;
+		//Concurrency::concurrent_priority_queue<int32, std::greater<int32>, StlAllocator<int32>> m_idxQueue;
+		Concurrency::concurrent_queue<int32, StlAllocator<int32>> m_idxQueue;
+		Vector<AtomicSessionPtr> m_vecSession;
 		//List<S_ptr<Session>> m_listSession;
 		//ConcurrentHashMap<uint64, decltype(m_listSession.begin())> m_mapFindSession;
 		//
@@ -62,7 +74,6 @@ namespace ServerCore
 		//SpinLock m_InsertLock[2];
 		//SpinLock m_eraseLock;
 	};
-
 
 	/*-------------------
 		ClientService

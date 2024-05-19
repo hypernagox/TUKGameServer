@@ -23,7 +23,7 @@ namespace ServerCore
 		//m_beginSentienl = std::prev(m_listSession.end());
 		//m_listSession.emplace_back(nullptr);
 		//m_endSentienl = std::prev(m_listSession.end());
-		for (int i = 0; i < m_maxSessionCount; ++i)
+		for (int i = 1; i <= m_maxSessionCount; ++i)
 		{
 			m_idxQueue.push(i);
 		}
@@ -57,8 +57,9 @@ namespace ServerCore
 		int32 idx;
 		if (!m_idxQueue.try_pop(idx))
 			return false;
+		m_id2Index[static_cast<c_uint32>(pSession_->GetSessionID())] = static_cast<c_uint16>(idx);
 		pSession_->m_serviceIdx.store(idx, std::memory_order_relaxed);
-		m_vecSession[idx] = std::move(pSession_);
+		m_vecSession[idx].ptr.store(std::move(pSession_), std::memory_order_relaxed);
 		return true;
 
 		//if (m_maxSessionCount <= m_sessionCount.fetch_add(1, std::memory_order_relaxed))
@@ -106,8 +107,18 @@ namespace ServerCore
 		const int32 idx = pSession_->m_serviceIdx.exchange(-1, std::memory_order_relaxed);
 		if (-1 == idx)
 			return;
-		m_vecSession[idx].reset();
+		m_vecSession[idx].ptr.store(nullptr, std::memory_order_relaxed);
 		m_idxQueue.push(idx);
+	}
+
+	S_ptr<Session> Service::GetSession(const uint64_t sessionID_)noexcept
+	{
+		const int32 idx = m_id2Index[static_cast<c_uint32>(sessionID_)];
+		auto target = m_vecSession[idx].ptr.load(std::memory_order_relaxed);
+		if (target && target->GetSessionID() == sessionID_)
+			return target;
+		else
+			return nullptr;
 	}
 
 	void Service::IterateSession(std::function<void(const S_ptr<Session>&)> fpIterate_)noexcept
@@ -124,8 +135,9 @@ namespace ServerCore
 		//		fpIterate_((*it));
 		//	}
 		//}
-		for (const auto& pSession : m_vecSession)
+		for (const auto& pSession_ : m_vecSession)
 		{
+			const auto pSession = pSession_.ptr.load(std::memory_order_relaxed);
 			if (pSession)
 				fpIterate_(pSession);
 		}
@@ -161,8 +173,6 @@ namespace ServerCore
 	{
 		Service::CloseService();
 	}
-
-
 
 	ServerService::ServerService(const std::shared_ptr<IocpCore>& pIocp_, NetAddress addr_, SessionFactory factory_, c_int32 maxSessionCount_)
 		: Service{ pIocp_,SERVICE_TYPE::SERVER,addr_,std::move(factory_),maxSessionCount_ }
