@@ -22,9 +22,12 @@ public:
 public:
 	std::recursive_mutex m_srwLock;
 	ServerCore::SRWLock m_srwLock2;
+	//std::recursive_mutex m_srwLock3;
+
 	ServerCore::HashSet<uint64_t> m_helloList;
 	std::chrono::steady_clock::time_point m_time{};
 	FSM m_fsm;
-	lua_State* m_lua;
+	lua_State* m_lua = nullptr;
+	//lua_State* m_lua2;
 };
 
