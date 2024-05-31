@@ -1,10 +1,10 @@
 #pragma once
 #include "ServerCorePch.h"
-#include "DBConnectionDBConnectionHandle.h"
+#include "DBConnectionHandle.h"
 
 namespace ServerCore
 {
-	template<int32 C>
+	template<c_int32 C>
 	struct FullBitsChecker { enum { value = (1 << (C - 1)) | FullBitsChecker<C - 1>::value }; };
 
 	template<>
@@ -13,7 +13,7 @@ namespace ServerCore
 	template<>
 	struct FullBitsChecker<0> { enum { value = 0 }; };
 
-	template<int32 ParamCount, int32 ColumnCount>
+	template<c_int32 ParamCount, c_int32 ColumnCount>
 	class DBBindRAII
 	{
 	public:
@@ -37,8 +37,9 @@ namespace ServerCore
 
 		const bool Execute()const noexcept
 		{
-			NAGOX_ASSERT(Validate());
-			return m_dbConnection->Execute(m_query);
+			const bool bRes = Validate() && m_dbConnection->Execute(m_query);
+			NAGOX_ASSERT(bRes);
+			return bRes;
 		}
 
 		const bool Fetch()const noexcept
@@ -54,23 +55,35 @@ namespace ServerCore
 			m_paramFlag |= (1LL << idx);
 		}
 
+		void BindParam(const int32 idx, std::string& value)noexcept
+		{
+			m_dbConnection->BindParam(idx + 1, value.data(), &m_paramIndex[idx]);
+			m_paramFlag |= (1LL << idx);
+		}
+
+		void BindParam(const int32 idx, std::wstring& value)noexcept
+		{
+			m_dbConnection->BindParam(idx + 1, value.data(), &m_paramIndex[idx]);
+			m_paramFlag |= (1LL << idx);
+		}
+
 		void BindParam(const int32 idx, const WCHAR* const value)noexcept
 		{
 			m_dbConnection->BindParam(idx + 1, value, &m_paramIndex[idx]);
 			m_paramFlag |= (1LL << idx);
 		}
 
-		template<typename T, int32 N>
+		template<typename T, c_int32 N>
 		void BindParam(const int32 idx, T(&value)[N])noexcept
 		{
-			m_dbConnection->BindParam(idx + 1, (BYTE*const)value, size32(T) * N, &m_paramIndex[idx]);
+			m_dbConnection->BindParam(idx + 1, (std::byte*const)value, size32(T) * N, &m_paramIndex[idx]);
 			m_paramFlag |= (1LL << idx);
 		}
 
 		template<typename T>
 		void BindParam(const int32 idx, T* const value, const int32 N)noexcept
 		{
-			m_dbConnection->BindParam(idx + 1, (BYTE*const)value, size32(T) * N, &m_paramIndex[idx]);
+			m_dbConnection->BindParam(idx + 1, (std::byte*const)value, size32(T) * N, &m_paramIndex[idx]);
 			m_paramFlag |= (1LL << idx);
 		}
 
@@ -81,7 +94,7 @@ namespace ServerCore
 			m_columnFlag |= (1LL << idx);
 		}
 
-		template<int32 N>
+		template<c_int32 N>
 		void BindCol(const int32 idx, WCHAR(&value)[N])noexcept
 		{
 			m_dbConnection->BindCol(idx + 1, value, N - 1, &m_columnIndex[idx]);
@@ -94,10 +107,28 @@ namespace ServerCore
 			m_columnFlag |= (1LL << idx);
 		}
 
-		template<typename T, int32 N>
+		void BindCol(const int32 idx, CHAR* const value, const int32 len)noexcept
+		{
+			m_dbConnection->BindCol(idx + 1, value, len - 1, &m_columnIndex[idx]);
+			m_columnFlag |= (1LL << idx);
+		}
+
+		void BindCol(const int32 idx, std::string& value)noexcept
+		{
+			m_dbConnection->BindCol(idx + 1, value.data(), (c_int32)value.size(), &m_columnIndex[idx]);
+			m_columnFlag |= (1LL << idx);
+		}
+
+		void BindCol(const int32 idx, std::wstring& value)noexcept
+		{
+			m_dbConnection->BindCol(idx + 1, value.data(), (c_int32)value.size(), &m_columnIndex[idx]);
+			m_columnFlag |= (1LL << idx);
+		}
+
+		template<typename T, c_int32 N>
 		void BindCol(const int32 idx, T(&value)[N])noexcept
 		{
-			m_dbConnection.BindCol(idx + 1, value, size32(T) * N, &m_columnIndex[idx]);
+			m_dbConnection->BindCol(idx + 1, value, size32(T) * N, &m_columnIndex[idx]);
 			m_columnFlag |= (1LL << idx);
 		}
 
