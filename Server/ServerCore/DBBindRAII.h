@@ -28,6 +28,17 @@ namespace ServerCore
 			m_dbConnection->Unbind();
 		}
 
+		DBBindRAII(DBBindRAII&& other)noexcept
+			: m_dbConnection{ other.m_dbConnection }
+			, m_query{ std::move(other.m_query) }
+			, m_paramFlag{ 0 }
+			, m_columnFlag{ 0 }
+			, m_paramIndex{ 0 }
+			, m_columnIndex{ 0 }
+		{
+			m_dbConnection->Unbind();
+		}
+
 		~DBBindRAII()noexcept { Mgr(DBMgr)->Push(m_dbConnection); }
 
 		const bool Validate()const noexcept
@@ -132,9 +143,9 @@ namespace ServerCore
 			m_columnFlag |= (1LL << idx);
 		}
 
-	protected:
+	private:
 		const DBConnectionHandle* const m_dbConnection;
-		const std::wstring_view m_query;
+		WString m_query;
 		SQLLEN m_paramIndex[ParamCount > 0 ? ParamCount : 1] = {};
 		SQLLEN m_columnIndex[ColumnCount > 0 ? ColumnCount : 1] = {};
 		uint64 m_paramFlag = {};

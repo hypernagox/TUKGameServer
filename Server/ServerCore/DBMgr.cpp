@@ -1,5 +1,7 @@
 #include "ServerCorePch.h"
 #include "DBMgr.h"
+#include "DBConnectionHandle.h"
+#include "ThreadMgr.h"
 
 namespace ServerCore
 {
@@ -9,6 +11,9 @@ namespace ServerCore
 
 	DBMgr::~DBMgr()
 	{
+		if (m_queryThread.joinable())
+			m_queryThread.join();
+		Clear();
 	}
 
 	void DBMgr::Init() noexcept
@@ -35,6 +40,8 @@ namespace ServerCore
 
 			m_connections.emplace_back(connection);
 		}
+
+		m_queryThread = std::jthread{ &DBMgr::ExecuteQuery ,this };
 
 		return true;
 	}
@@ -68,5 +75,24 @@ namespace ServerCore
 	{
 		SpinLockGuard lock{ m_spinLock };
 		m_connections.emplace_back(connection);
+	}
+	void DBMgr::ExecuteQuery() noexcept
+	{
+		const bool& bStopFlag = Mgr(ThreadMgr)->GetStopFlagRef();
+		Vector<S_ptr<DBEvent>> dbEvents;
+		const auto iocpHandle = Mgr(ThreadMgr)->GetIocpHandle();
+		for (;;)
+		{
+			if(bStopFlag) [[unlikely]]
+				break;
+			m_dbEventQueue.try_flush_single(dbEvents);
+			for (const auto& dbEvent : dbEvents)
+			{
+				dbEvent->ExecuteQuery();
+				::PostQueuedCompletionStatus(iocpHandle, 0, 0, &dbEvent->m_dbEvent);
+			}
+			dbEvents.clear();
+			std::this_thread::yield();
+		}
 	}
 }
