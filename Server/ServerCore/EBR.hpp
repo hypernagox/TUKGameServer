@@ -21,7 +21,8 @@ namespace ServerCore
 	public:
 		void Start()noexcept
 		{
-			auto& thCounter = m_thCounter[Mgr(ThreadMgr)->GetCurThreadIdx()].data;
+			thread_local const int32 thIdx = Mgr(ThreadMgr)->GetCurThreadIdx();
+			auto& thCounter = m_thCounter[thIdx].data;
 			thCounter.store(
 				m_eCounter.fetch_add(1, std::memory_order_relaxed),
 				std::memory_order_relaxed
@@ -29,13 +30,15 @@ namespace ServerCore
 		}
 		void End()noexcept
 		{
-			auto& thCounter = m_thCounter[Mgr(ThreadMgr)->GetCurThreadIdx()].data;
+			thread_local const int32 thIdx = Mgr(ThreadMgr)->GetCurThreadIdx();
+			auto& thCounter = m_thCounter[thIdx].data;
 			thCounter.store(0, std::memory_order_relaxed);
 		}
 		template <typename... Args>
 		T* const GetNewNode(Args&&... args)noexcept
 		{
-			auto& freeList = m_freeList[Mgr(ThreadMgr)->GetCurThreadIdx()].data;
+			thread_local const int32 thIdx = Mgr(ThreadMgr)->GetCurThreadIdx();
+			auto& freeList = m_freeList[thIdx].data;
 			if (freeList.empty())return xnew<T>(std::forward<Args>(args)...);
 			T* const node = freeList.front();
 			if(node->remove_point >= GetMinEpoch())return xnew<T>(std::forward<Args>(args)...);
@@ -44,7 +47,8 @@ namespace ServerCore
 		}
 		void RemoveNode(T* const node)noexcept
 		{
-			auto& freeList = m_freeList[Mgr(ThreadMgr)->GetCurThreadIdx()].data;
+			thread_local const int32 thIdx = Mgr(ThreadMgr)->GetCurThreadIdx();
+			auto& freeList = m_freeList[thIdx].data;
 			std::destroy_at<T>(node);
 			node->remove_point = GetMaxEpoch();
 			freeList.emplace(node);
