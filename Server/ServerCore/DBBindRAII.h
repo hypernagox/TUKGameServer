@@ -18,15 +18,9 @@ namespace ServerCore
 	{
 	public:
 		DBBindRAII(const std::wstring_view query)noexcept
-			: m_dbConnection{ Mgr(DBMgr)->Pop() }
+			: m_dbConnection{ Mgr(DBMgr)->GetDBHandle() }
 			, m_query{ query }
-			, m_paramFlag{ 0 }
-			, m_columnFlag{ 0 }
-			, m_paramIndex{ 0 }
-			, m_columnIndex{ 0 }
-		{
-			m_dbConnection->Unbind();
-		}
+		{}
 
 		DBBindRAII(DBBindRAII&& other)noexcept
 			: m_dbConnection{ other.m_dbConnection }
@@ -35,11 +29,9 @@ namespace ServerCore
 			, m_columnFlag{ 0 }
 			, m_paramIndex{ 0 }
 			, m_columnIndex{ 0 }
-		{
-			m_dbConnection->Unbind();
-		}
+		{}
 
-		~DBBindRAII()noexcept { Mgr(DBMgr)->Push(m_dbConnection); }
+		~DBBindRAII()noexcept = default;
 
 		const bool Validate()const noexcept
 		{
@@ -146,10 +138,10 @@ namespace ServerCore
 	private:
 		const DBConnectionHandle* const m_dbConnection;
 		WString m_query;
-		SQLLEN m_paramIndex[ParamCount > 0 ? ParamCount : 1] = {};
-		SQLLEN m_columnIndex[ColumnCount > 0 ? ColumnCount : 1] = {};
-		uint64 m_paramFlag = {};
-		uint64 m_columnFlag = {};
+		SQLLEN m_paramIndex[ParamCount > 0 ? ParamCount : 1];
+		SQLLEN m_columnIndex[ColumnCount > 0 ? ColumnCount : 1];
+		uint64 m_paramFlag;
+		uint64 m_columnFlag;
 	};
 }
 

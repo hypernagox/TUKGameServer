@@ -1,12 +1,12 @@
 #pragma once
 #include "ServerCorePch.h"
+#include "BackOff.h"
 
 namespace ServerCore
 {
 	template <typename T>
 	class MPSCQueue
 	{
-
 	private:
 		struct Node {
 			T data;
@@ -40,12 +40,14 @@ namespace ServerCore
 		}
 		template <typename... Args>
 		void emplace(Args&&... args) noexcept {
+			BackOff backOff{ NUM_OF_THREADS / 2 };
 			Node* const value = xnew<Node>(std::forward<Args>(args)...);
 			Node* __restrict oldTail = tail.load(std::memory_order_relaxed);
 			while (!tail.compare_exchange_weak(oldTail, value
 				, std::memory_order_relaxed
 				, std::memory_order_relaxed))
 			{
+				backOff.delay();
 			}
 			oldTail->next.store(value, std::memory_order_release);
 		}
